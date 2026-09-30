@@ -1,7 +1,5 @@
 ## AI-Generated Hotel Review Classification
-This project investigates whether hotel reviews can be classified as human-written or AI-generated using machine learning.
-
-The dataset contains 'real' hotel reviews from Booking.com and AI-generated reviews created using GPT-4. The analysis is restricted to English-language reviews.
+This project investigates whether hotel reviews can be classified as human-written or AI-generated using machine learning. The dataset contains 'real' hotel reviews from Booking.com and AI-generated reviews created using GPT-4. The analysis is restricted to English-language reviews.
 
 ### Dataset
 The original dataset is stored in: `all_data.csv`
@@ -44,10 +42,10 @@ project/
 ### Requirements
 The project uses Python and the following packages:
 
-pandas
-nltk
-matplotlib
-wordcloud
-scikit-learn
+- `pandas`
+- `nltk`
+- `matplotlib`
+- `wordcloud`
+- `scikit-learn`
 
 The NLTK stopword corpus is downloaded within: nltk.download("stopwords")
