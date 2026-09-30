@@ -21,7 +21,7 @@ The target variable is based on the source column: `0 = Human`, `1 = AI`
 ### Train/ Test-Split
 The data is divided into **training/validation set (75%)**, and a **test set(25%)** using stratified random sampling.
 Hyperparameter tuning is performed using cross-validation on the training data, so no separate hold-out validation set is required.
-Run the preprocessing.ipynb to obtain the resulting datasets `train.csv` and `test.csv`.
+Run the `preprocessing.ipynb` to obtain the resulting datasets `train.csv` and `test.csv`.
 
 ### Feature Extraction
 
