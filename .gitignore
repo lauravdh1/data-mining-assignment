@@ -12,3 +12,13 @@
 
 # LaTeX build output
 report/build/
+
+# LaTeX build output
+*.aux
+*.bbl
+*.blg
+*.log
+*.out
+*.fls
+*.fdb_latexmk
+*.synctex.gz
