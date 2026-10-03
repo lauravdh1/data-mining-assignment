@@ -4,7 +4,7 @@
 Install uv: https://docs.astral.sh/uv/getting-started/installation/
 
     uv sync
-    uv run python src/yourproject/train.py
+    uv run python train_models.py
 
 ## AI-Generated Hotel Review Classification
 This project investigates whether hotel reviews can be classified as human-written or AI-generated using machine learning. The dataset contains 'real' hotel reviews from Booking.com and AI-generated reviews created using GPT-4. The analysis is restricted to English-language reviews.
