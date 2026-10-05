@@ -20,7 +20,7 @@ from scipy.stats import chi2_contingency
 
 # Configurations
 
-RANDOM_STATE = 5
+RANDOM_STATE = 42
 CROSS_VALIDATION_SPLITS = 5
 TOP_N_FEATURES = 5
 TRAIN_FILE = "data/train.csv"
