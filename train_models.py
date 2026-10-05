@@ -211,8 +211,8 @@ def tune_random_forest(X_train, y_train, cv):
 
     param_grid = {
         "vec__min_df": [1, 2, 5],
-        "clf__max_features": ["sqrt", "log2"],
-        "clf__n_estimators": [100, 300],
+        "clf__max_features": ["sqrt", "log2", 0.05, 0.1],
+        "clf__n_estimators": [100, 300, 500],
     }
     return tune("Random Forest", pipe, param_grid, X_train, y_train, cv)
 
