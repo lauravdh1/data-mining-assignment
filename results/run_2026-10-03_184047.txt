@@ -1,0 +1,94 @@
+===== Settings =====
+  CV folds:     5
+  Random seed:  5
+
+
+===== Data =====
+  Train: 1497 reviews, {'AI': 750, 'human': 747}
+  Test:  500 reviews, {'AI': 250, 'human': 250}
+
+
+===== Hyperparameter Tuning (CV) =====
+
+--- Logistic Regression ---
+  Best params:
+    C: 1.931
+    min_df: 1
+  CV accuracy:  0.9145
+
+--- Naive Bayes ---
+  Best params:
+    k: all
+    min_df: 5
+  CV accuracy:  0.9065
+
+--- Decision Tree ---
+  Best params:
+    ccp_alpha: 0.004405
+  CV accuracy:  0.7902
+
+
+===== Test Set Results =====
+
+--- Logistic Regression ---
+  Accuracy:   0.9000
+  Precision:  0.9167
+  Recall:     0.8800
+  F1 Score:   0.8980
+
+--- Naive Bayes ---
+  Accuracy:   0.8980
+  Precision:  0.8566
+  Recall:     0.9560
+  F1 Score:   0.9036
+
+--- Decision Tree ---
+  Accuracy:   0.7800
+  Precision:  0.7652
+  Recall:     0.8080
+  F1 Score:   0.7860
+
+
+===== McNemar's Test: Logistic Regression vs Naive Bayes =====
+                                    Naive Bayes correct    Naive Bayes incorrect
+Logistic Regression correct                         418                       32
+Logistic Regression incorrect                        31                       19
+Stat: 0.0000, p-value: 1.0000
+
+
+===== Top Features =====
+
+Top 5 features for Naive Bayes (AI):
+  delight: 3.4233
+  notch: 3.2563
+  desir: 3.2255
+  inconsist: 3.1938
+  lastli: 3.1610
+
+Top 5 features for Naive Bayes (human):
+  told: -3.8778
+  said: -3.6414
+  never: -3.6075
+  com: -3.4183
+  second: -3.3313
+
+Top 5 features for Logistic Regression (AI):
+  delight: 3.5855
+  offer: 2.8371
+  lack: 2.8240
+  stylish: 2.5465
+  notch: 2.4924
+
+Top 5 features for Logistic Regression (human):
+  enter: -3.7725
+  big: -2.6497
+  etc: -2.5372
+  fan: -2.5059
+  us: -2.1593
+
+Top 5 features for Decision Tree:
+  servic: 0.2629
+  staff: 0.1899
+  room: 0.0998
+  lack: 0.0765
+  good: 0.0561
