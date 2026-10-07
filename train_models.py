@@ -14,11 +14,13 @@ from sklearn.naive_bayes import MultinomialNB
 from sklearn.feature_selection import SelectKBest, chi2
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
 from scipy.stats import chi2 as chi2_dist
+from scipy.stats import chi2_contingency
 
 # Configurations
 
-RANDOM_STATE = 5
+RANDOM_STATE = 42
 CROSS_VALIDATION_SPLITS = 5
 TOP_N_FEATURES = 5
 TRAIN_FILE = "data/train.csv"
@@ -197,6 +199,59 @@ def tune_decision_tree(X_train, y_train, cv):
     param_grid = {"clf__ccp_alpha": alphas}
     return tune("Decision Tree", pipe, param_grid, X_train, y_train, cv)
 
+def tune_random_forest(X_train, y_train, cv):
+    """Tune Random Forest.
+    The best min_df, max_features and n_estimators are selected using cross-validation."""
+    pipe = Pipeline(
+        [
+            ("vec", CountVectorizer()),
+            ("clf", RandomForestClassifier(random_state=RANDOM_STATE)),
+        ]
+    )
+
+    param_grid = {
+        "vec__min_df": [1, 2, 5],
+        "clf__max_features": ["sqrt", "log2", 0.05, 0.1],
+        "clf__n_estimators": [100, 300, 500],
+    }
+    return tune("Random Forest", pipe, param_grid, X_train, y_train, cv)
+
+def tune_gradient_boosting(X_train, y_train, cv):
+    """Tune Gradient Boosting.
+    The best learning_rate, n_estimators and max_depth are selected using cross-validation."""
+    pipe = Pipeline(
+        [
+            ("vec", CountVectorizer()),
+            ("clf", GradientBoostingClassifier(random_state=RANDOM_STATE)),
+        ]
+    )
+
+    param_grid = {
+        "clf__learning_rate": [0.05, 0.1, 0.2],
+        "clf__n_estimators": [100, 300],
+        "clf__max_depth": [1, 3, 5],
+    }
+    return tune("Gradient Boosting", pipe, param_grid, X_train, y_train, cv)
+
+def accuracy_by_group_test(y_true, y_pred, groups, name):
+    """Chi-square test of whether a model's accuracy differs between groups of reviews."""
+
+    correct = np.where(np.asarray(y_true) == np.asarray(y_pred), "correct", "incorrect")
+    table = pd.crosstab(np.asarray(groups), correct).reindex(
+        columns=["correct", "incorrect"], fill_value=0
+    )
+    stat, p_value, _, _ = chi2_contingency(table)
+
+    logger.info(f"\n\n===== Chi-square Test: {name} accuracy by review polarity =====")
+    logger.info(f"{'':20}{'correct':>12}{'incorrect':>12}{'accuracy':>12}")
+    for group, row in table.iterrows():
+        accuracy = row["correct"] / row.sum()
+        logger.info(
+            f"{str(group):20}{row['correct']:>12}{row['incorrect']:>12}{accuracy:>12.4f}"
+        )
+    logger.info(f"Stat: {stat:.4f}, p-value: {p_value:.4f}")
+
+    return p_value
 
 def main():
     setup_logging()
@@ -224,9 +279,11 @@ def main():
         n_splits=CROSS_VALIDATION_SPLITS, shuffle=True, random_state=RANDOM_STATE
     )
     tuned_models = {
-        "Logistic Regression": tune_logistic_regression(X_train, y_train, cv),
-        "Naive Bayes": tune_naive_bayes(X_train, y_train, cv),
-        "Decision Tree": tune_decision_tree(X_train, y_train, cv),
+    "Logistic Regression": tune_logistic_regression(X_train, y_train, cv),
+    "Naive Bayes": tune_naive_bayes(X_train, y_train, cv),
+    "Decision Tree": tune_decision_tree(X_train, y_train, cv),
+    "Random Forest": tune_random_forest(X_train, y_train, cv),
+    "Gradient Boosting": tune_gradient_boosting(X_train, y_train, cv),
     }
 
     # Evaluate the final models on the test set
@@ -245,12 +302,29 @@ def main():
         "Naive Bayes",
     )
 
+    # McNemar's tests comparing each tree ensemble with the single tree (Q2)
+    for name in ["Random Forest", "Gradient Boosting"]:
+        mcnemar_test(
+            y_test, test_preds[name], test_preds["Decision Tree"], name, "Decision Tree"
+        )
+
+    # Random Forest on positive vs negative reviews (Q3)
+    logger.info("\n\n===== Random Forest by Review Polarity =====")
+    polarity = test_df["Sentiment"]
+    rf_pred = test_preds["Random Forest"]
+    for value in sorted(polarity.unique()):
+        mask = (polarity == value).to_numpy()
+        print_metrics(f"Random Forest, {value} reviews", y_test[mask], rf_pred[mask])
+    accuracy_by_group_test(y_test, rf_pred, polarity, "Random Forest")
+
     # Prints the top features for each model (Q4)
     logger.info("\n\n===== Top Features =====")
     for name, signed in [
-        ("Naive Bayes", True),
+        ("Naive Bayes", True), 
         ("Logistic Regression", True),
         ("Decision Tree", False),
+        ("Random Forest", False),
+        ("Gradient Boosting", False),
     ]:
         words, scores = get_feature_scores(tuned_models[name])
         print_top_features(name, words, scores, signed)
