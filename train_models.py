@@ -101,7 +101,7 @@ def get_feature_scores(model):
     return words, scores
 
 
-def print_top_features(name, words, scores, signed):
+def print_top_features(name, words, scores, signed, present=None, y=None):
     """Print the top features for a model.
     If signed is True, print the top positive and negative features separately."""
     if signed:
@@ -118,7 +118,9 @@ def print_top_features(name, words, scores, signed):
         top_indices = np.argsort(scores)[::-1][:TOP_N_FEATURES]
         logger.info(f"\nTop {TOP_N_FEATURES} features for {name}:")
         for idx in top_indices:
-            logger.info(f"  {words[idx]}: {scores[idx]:.4f}")
+            ai = present[y == 1, idx].mean()
+            human = present[y == 0, idx].mean()
+            logger.info(f"  {words[idx]}: {scores[idx]:.4f}  (in {ai:.0%} AI, {human:.0%} human reviews)")
 
 
 # Hyperparameter tuning
@@ -247,13 +249,16 @@ def main():
 
     # Prints the top features for each model (Q4)
     logger.info("\n\n===== Top Features =====")
+    y = y_train.to_numpy()
     for name, signed in [
         ("Naive Bayes", True),
         ("Logistic Regression", True),
         ("Decision Tree", False),
     ]:
         words, scores = get_feature_scores(tuned_models[name])
-        print_top_features(name, words, scores, signed)
+        # Prints which direction (AI or human) a feature means
+        present = tuned_models[name].named_steps["vec"].transform(X_train).toarray() > 0
+        print_top_features(name, words, scores, signed, present, y)
 
 
 if __name__ == "__main__":
