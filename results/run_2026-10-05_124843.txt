@@ -1,0 +1,170 @@
+===== Settings =====
+  CV folds:     5
+  Random seed:  42
+
+
+===== Data =====
+  Train: 1497 reviews, {'AI': 750, 'human': 747}
+  Test:  500 reviews, {'AI': 250, 'human': 250}
+
+
+===== Hyperparameter Tuning (CV) =====
+
+--- Logistic Regression ---
+  Best params:
+    C: 1.931
+    min_df: 3
+  CV accuracy:  0.9071
+
+--- Naive Bayes ---
+  Best params:
+    k: all
+    min_df: 5
+  CV accuracy:  0.9005
+
+--- Decision Tree ---
+  Best params:
+    ccp_alpha: 0.004405
+  CV accuracy:  0.7889
+
+--- Random Forest ---
+  Best params:
+    max_features: log2
+    n_estimators: 500
+    min_df: 2
+  CV accuracy:  0.9172
+
+--- Gradient Boosting ---
+  Best params:
+    learning_rate: 0.2
+    max_depth: 3
+    n_estimators: 300
+  CV accuracy:  0.9078
+
+
+===== Test Set Results =====
+
+--- Logistic Regression ---
+  Accuracy:   0.9020
+  Precision:  0.9170
+  Recall:     0.8840
+  F1 Score:   0.9002
+
+--- Naive Bayes ---
+  Accuracy:   0.8980
+  Precision:  0.8566
+  Recall:     0.9560
+  F1 Score:   0.9036
+
+--- Decision Tree ---
+  Accuracy:   0.7800
+  Precision:  0.7652
+  Recall:     0.8080
+  F1 Score:   0.7860
+
+--- Random Forest ---
+  Accuracy:   0.8960
+  Precision:  0.9195
+  Recall:     0.8680
+  F1 Score:   0.8930
+
+--- Gradient Boosting ---
+  Accuracy:   0.9000
+  Precision:  0.9098
+  Recall:     0.8880
+  F1 Score:   0.8988
+
+
+===== McNemar's Test: Logistic Regression vs Naive Bayes =====
+                                    Naive Bayes correct    Naive Bayes incorrect
+Logistic Regression correct                         421                       30
+Logistic Regression incorrect                        28                       21
+Stat: 0.0172, p-value: 0.8955
+
+
+===== McNemar's Test: Random Forest vs Decision Tree =====
+                                  Decision Tree correct  Decision Tree incorrect
+Random Forest correct                               369                       79
+Random Forest incorrect                              21                       31
+Stat: 32.4900, p-value: 0.0000
+
+
+===== McNemar's Test: Gradient Boosting vs Decision Tree =====
+                                  Decision Tree correct  Decision Tree incorrect
+Gradient Boosting correct                           377                       73
+Gradient Boosting incorrect                          13                       37
+Stat: 40.4767, p-value: 0.0000
+
+
+===== Random Forest by Review Polarity =====
+
+--- Random Forest, NEG reviews ---
+  Accuracy:   0.9084
+  Precision:  0.9426
+  Recall:     0.8779
+  F1 Score:   0.9091
+
+--- Random Forest, POS reviews ---
+  Accuracy:   0.8835
+  Precision:  0.8947
+  Recall:     0.8571
+  F1 Score:   0.8755
+
+
+===== Chi-square Test: Random Forest accuracy by review polarity =====
+                         correct   incorrect    accuracy
+NEG                          228          23      0.9084
+POS                          220          29      0.8835
+Stat: 0.5822, p-value: 0.4455
+
+
+===== Top Features =====
+
+Top 5 features for Naive Bayes (AI):
+  delight: 3.4233
+  notch: 3.2563
+  desir: 3.2255
+  inconsist: 3.1938
+  lastli: 3.1610
+
+Top 5 features for Naive Bayes (human):
+  told: -3.8778
+  said: -3.6414
+  never: -3.6075
+  com: -3.4183
+  second: -3.3313
+
+Top 5 features for Logistic Regression (AI):
+  delight: 3.5810
+  lack: 2.8383
+  offer: 2.8076
+  stylish: 2.5321
+  notch: 2.5021
+
+Top 5 features for Logistic Regression (human):
+  enter: -3.7465
+  etc: -2.7759
+  big: -2.6572
+  fan: -2.5060
+  us: -2.1774
+
+Top 5 features for Decision Tree:
+  servic: 0.2629
+  staff: 0.1899
+  room: 0.0998
+  lack: 0.0765
+  good: 0.0561
+
+Top 5 features for Random Forest:
+  room: 0.0209
+  servic: 0.0201
+  staff: 0.0131
+  hotel: 0.0128
+  lack: 0.0109
+
+Top 5 features for Gradient Boosting:
+  servic: 0.1047
+  room: 0.0921
+  staff: 0.0754
+  lack: 0.0352
+  central: 0.0314

@@ -1,0 +1,45 @@
+@article{Dietterich1998,
+    author = {Dietterich, Thomas G.},
+    title = {Approximate Statistical Tests for Comparing Supervised Classification Learning Algorithms},
+    journal = {Neural Computation},
+    volume = {10},
+    number = {7},
+    pages = {1895-1923},
+    year = {1998},
+    month = {10},
+    abstract = {This article reviews five approximate statistical tests for determining whether one learning algorithm outperforms another on a particular learning task. These test sare compared experimentally to determine their probability of incorrectly detecting a difference when no difference exists (type I error). Two widely used statistical tests are shown to have high probability of type I error in certain situations and should never be used: a test for the difference of two proportions and a paired-differences t test based on taking several random train-test splits. A third test, a paired-differences t test based on 10-fold cross-validation, exhibits somewhat elevated probability of type I error. A fourth test, McNemar's test, is shown to have low type I error. The fifth test is a new test, 5 × 2 cv, based on five iterations of twofold cross-validation. Experiments show that this test also has acceptable type I error. The article also measures the power (ability to detect algorithm differences when they do exist) of these tests. The cross-validated t test is the most powerful. The 5×2 cv test is shown to be slightly more powerful than McNemar's test. The choice of the best test is determined by the computational cost of running the learning algorithm. For algorithms that can be executed only once, Mc-Nemar's test is the only test with acceptable type I error. For algorithms that can be executed 10 times, the 5 × 2 cv test is recommended, because it is slightly more powerful and because it directly measures variation due to the choice of training set.},
+    issn = {0899-7667},
+    doi = {10.1162/089976698300017197},
+    url = {https://doi.org/10.1162/089976698300017197},
+    eprint = {https://direct.mit.edu/neco/article-pdf/10/7/1895/814002/089976698300017197.pdf},
+}
+
+@inproceedings{Ng2001,
+ author = {Ng, Andrew and Jordan, Michael},
+ booktitle = {Advances in Neural Information Processing Systems},
+ editor = {T. Dietterich and S. Becker and Z. Ghahramani},
+ pages = {},
+ publisher = {MIT Press},
+ title = {On Discriminative vs. Generative Classifiers: A comparison of logistic regression and naive Bayes},
+ url = {https://proceedings.neurips.cc/paper_files/paper/2001/file/7b7a53e239400a13bd6be6c91c4f6c4e-Paper.pdf},
+ volume = {14},
+ year = {2001}
+}
+
+@Article{Breiman2001,
+author={Breiman, Leo},
+title={Random Forests},
+journal={Machine Learning},
+year={2001},
+month={Oct},
+day={01},
+volume={45},
+number={1},
+pages={5-32},
+abstract={Random forests are a combination of tree predictors such that each tree depends on the values of a random vector sampled independently and with the same distribution for all trees in the forest. The generalization error for forests converges a.s. to a limit as the number of trees in the forest becomes large. The generalization error of a forest of tree classifiers depends on the strength of the individual trees in the forest and the correlation between them. Using a random selection of features to split each node yields error rates that compare favorably to Adaboost (Y. Freund {\&} R. Schapire, Machine Learning: Proceedings of the Thirteenth International conference, ***, 148--156), but are more robust with respect to noise. Internal estimates monitor error, strength, and correlation and these are used to show the response to increasing the number of features used in the splitting. Internal estimates are also used to measure variable importance. These ideas are also applicable to regression.},
+issn={1573-0565},
+doi={10.1023/A:1010933404324},
+url={https://doi.org/10.1023/A:1010933404324}
+}
+
+
