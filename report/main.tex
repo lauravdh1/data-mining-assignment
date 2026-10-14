@@ -89,7 +89,7 @@ This approach provides a method for representing text data by treating word coun
 Each model was tuned using a grid search with 5-fold cross-validation to identify the optimal hyperparameters (\tableref{tab:hyperparameters}).
 5-fold cross-validation was chosen to balance the need for robust evaluation against the limitations of the dataset size and available computational time.
 
-\begin{table}[htbp]
+\begin{table}[H]
 \floatconts
   {tab:hyperparameters}%
   {\caption{Hyperparameter grids searched with 5-fold cross-validation and the selected values. Parameter names follow scikit-learn; min\_df not listed means the default of 1 was used.}}%
@@ -333,7 +333,7 @@ To investigate whether the selected Random Forest classifier performs better at 
 
 As shown in \tableref{tab:polarity-rf}, Random Forest achieves slightly higher accuracy on negative reviews (0.9084) compared to positive reviews (0.8835), along with higher precision (0.9426 vs.\ 0.8947) and F1-score (0.9091 vs.\ 0.8755). To test whether this difference in accuracy is statistically significant, we performed a chi-square test on the contingency table of correct and incorrect classifications by sentiment polarity. The test yielded $\chi^2 = 0.5822$ ($p = 0.4455 > 0.01$), indicating that we fail to reject the null hypothesis. Consequently, the Random Forest model's ability to detect AI-generated reviews does not differ significantly between positive and negative reviews.
 
-\begin{table}[htbp]
+\begin{table}[H]
 \floatconts
   {tab:polarity-rf}%
   {\caption{Random Forest performance by review polarity (positive vs.\ negative) and contingency table for accuracy ($\chi^2 = 0.582$, $p = 0.4455$).}}%
