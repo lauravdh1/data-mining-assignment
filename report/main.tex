@@ -5,7 +5,7 @@
 
  %\usepackage{rotating}% for sideways figures and tables
 \usepackage{longtable}% for long tables
-
+\usepackage{float}
  % The booktabs package is used by this sample document
  % (it provides \toprule, \midrule and \bottomrule).
  % Remove the next line if you don't require it.
@@ -123,7 +123,7 @@ This approach provides a method for representing text data by treating word coun
 Each model was tuned using a grid search with 5-fold cross-validation to identify the optimal hyperparameters (\tableref{tab:hyperparameters}).
 5-fold cross-validation was chosen to balance the need for robust evaluation against the limitations of the dataset size and available computational time.
 
-\begin{table}[htbp]
+\begin{table}[H]
 \floatconts
   {tab:hyperparameters}%
   {\caption{Hyperparameter grids searched with 5-fold cross-validation and the selected values. Parameter names follow scikit-learn; min\_df not listed means the default of 1 was used.}}%
@@ -180,6 +180,9 @@ In addition to accuracy, precision, recall and F1-score, we used McNemar's test 
 McNemar's test is computationally efficient and requires only a single train/test split, suiting our setup.
 We compared Naive Bayes and Logistic Regression because they represent the generative and discriminative models, respectively \citep{Ng2001}.
 The results of this test will indicate whether for this text classification task it is more effective to model the estimated generative probability of the words or to model the class boundary more directly.
+To evaluate whether combining multiple trees enhances predictive performance, we also
+implemented Random Forest and Gradient Boosting classifiers. We apply McNemar's test to
+compare each ensemble model against the Decision Tree baseline.
 % Motivate McNemar comparison of other models here (Q2)
 
 We used the McNemar formula as follows:
@@ -196,7 +199,7 @@ The null hypothesis states that both models perform with equal accuracy, while t
 \subsection{Performance}
 \label{sec:performance}
 
-\begin{table}[htbp]
+\begin{table}[H]
 \floatconts
   {tab:performance}%
   {\caption{Cross-validation accuracy on the training set and test set performance of the final models.}}%
@@ -232,7 +235,7 @@ Logistic regression misclassifies 28 reviews that Naive Bayes correctly identifi
 Given the proximity of these numbers, McNemar's test gives $p = 0.896 > 0.01$, so we failed to reject the null hypothesis.
 This means Logistic Regression and Naive Bayes do not differ significantly in accuracy.
 
-\begin{table}[htbp]
+\begin{table}[H]
 \floatconts
   {tab:mcnemar-lr-nb}%
   {\caption{McNemar contingency table for Logistic Regression vs.\ Naive Bayes on the test set ($\chi^2 = 0.017$, $p = 0.896$).}}%
@@ -246,10 +249,44 @@ This means Logistic Regression and Naive Bayes do not differ significantly in ac
   \end{tabular}}
 \end{table}
 
+To evaluate whether tree ensembles significantly improve upon the single Decision Tree baseline, we also performed McNemar's tests comparing Random Forest and Gradient Boosting against the Decision Tree. 
+
+For Random Forest versus the Decision Tree, both models correctly classified 369 instances, while Random Forest corrected 79 errors made by the Decision Tree and made 21 new errors. This yields $\chi^2 = 32.49$ ($p < 0.001$), leading to a rejection of the null hypothesis at $\alpha = 0.01$ and confirming that Random Forest significantly outperforms the single Decision Tree.
+
+\begin{table}[H]
+\floatconts
+  {tab:mcnemar-rf-dt}%
+  {\caption{McNemar contingency table for Random Forest vs.\ Decision Tree on the test set ($\chi^2 = 32.49$, $p < 0.001$).}}%
+  {\begin{tabular}{lcc}
+  \toprule
+  & \bfseries DT correct & \bfseries DT incorrect\\
+  \midrule
+  \bfseries RF correct & 369 & 79\\
+  \bfseries RF incorrect & 21 & 31\\
+  \bottomrule
+  \end{tabular}}
+\end{table}
+
+Similarly, Gradient Boosting correctly classified 377 instances in agreement with the Decision Tree, corrected 73 errors, and made 13 new errors. This results in $\chi^2 = 40.48$ ($p < 0.001$), also indicating a statistically significant improvement over the single Decision Tree baseline.
+
+\begin{table}[H]
+\floatconts
+  {tab:mcnemar-gb-dt}%
+  {\caption{McNemar contingency table for Gradient Boosting vs.\ Decision Tree on the test set ($\chi^2 = 40.48$, $p < 0.001$).}}%
+  {\begin{tabular}{lcc}
+  \toprule
+  & \bfseries DT correct & \bfseries DT incorrect\\
+  \midrule
+  \bfseries GB correct & 377 & 73\\
+  \bfseries GB incorrect & 13 & 37\\
+  \bottomrule
+  \end{tabular}}
+\end{table}
+
 \subsection{Feature Importance}
 \label{sec:feature-importance}
 
-\begin{table}[htbp]
+\begin{table}[H]
 \floatconts
   {tab:top-features-linear}%
   {\caption{Top 5 features of the linear models. For Naive Bayes the score is the log-probability ratio $\log P(w \mid \text{AI}) - \log P(w \mid \text{human})$; for Logistic Regression it is the L1 coefficient. Positive scores point towards AI-generated, negative towards human-written reviews.}}%
@@ -306,7 +343,7 @@ This word also has a significantly lower Gini importance than the other top four
 Although descriptive words are mostly associated with AI in the other models, \emph{good} points towards human reviews. This could be because AI uses more polished language (e.g., \emph{delight}, \emph{top-notch}, \emph{stylish}) to appear convincing, whereas humans may use simpler, more neutral adjectives like \emph{good} to express satisfaction.
 
 
-\begin{table}[htbp]
+\begin{table}[H]
 \floatconts
   {tab:top-features-trees}%
   {\caption{Top 5 features of the tree-based models, ranked by Gini importance. Direction is the class with the larger share of training reviews containing the word.}}%
@@ -323,7 +360,26 @@ Although descriptive words are mostly associated with AI in the other models, \e
   \end{tabular}}
 \end{table}
 
+\subsection{Performance by Review Polarity}
+\label{sec:polarity}
 
+To investigate whether the selected Random Forest classifier performs better at distinguishing between fake and genuine reviews for positive versus negative sentiment, we evaluated its test set performance separately across positive and negative review subsets. 
+
+As shown in \tableref{tab:polarity-rf}, Random Forest achieves slightly higher accuracy on negative reviews (0.9084) compared to positive reviews (0.8835), along with higher precision (0.9426 vs.\ 0.8947) and F1-score (0.9091 vs.\ 0.8755). To test whether this difference in accuracy is statistically significant, we performed a chi-square test on the contingency table of correct and incorrect classifications by sentiment polarity. The test yielded $\chi^2 = 0.5822$ ($p = 0.4455 > 0.01$), indicating that we fail to reject the null hypothesis. Consequently, the Random Forest model's ability to detect AI-generated reviews does not differ significantly between positive and negative reviews.
+
+\begin{table}[H]
+\floatconts
+  {tab:polarity-rf}%
+  {\caption{Random Forest performance by review polarity (positive vs.\ negative) and contingency table for accuracy ($\chi^2 = 0.582$, $p = 0.4455$).}}%
+  {\begin{tabular}{lcccccc}
+  \toprule
+  \bfseries Polarity & \bfseries Accuracy & \bfseries Precision & \bfseries Recall & \bfseries F1 & \bfseries Correct & \bfseries Incorrect\\
+  \midrule
+  Negative & 0.9084 & 0.9426 & 0.8779 & 0.9091 & 228 & 23\\
+  Positive & 0.8835 & 0.8947 & 0.8571 & 0.8755 & 220 & 29\\
+  \bottomrule
+  \end{tabular}}
+\end{table}
 
 \section{Conclusions}
 \label{sec:conclusions}
