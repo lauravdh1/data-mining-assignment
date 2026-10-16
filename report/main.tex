@@ -16,6 +16,8 @@
 \usepackage[load-configurations=version-1]{siunitx} % newer version
  %\usepackage{siunitx}
 
+ \usepackage{graphicx}
+
  % The following command is just for this sample document:
 \newcommand{\cs}[1]{\texttt{\char`\\#1}}
 
@@ -31,8 +33,7 @@
 \jmlryear{2010}
 \jmlrworkshop{Workshop Title}
 
-\title[Short Title]{Full Title of Article\titlebreak This Title Has
-A Line Break\titletag{\thanks{sample footnote}}}
+\title[Detection of Fake Hotel Reviews]{Detection of Fake Hotel Reviews}
 
  % Use \Name{Author Name} to specify the name.
 
@@ -74,12 +75,169 @@ List of keywords
 \section{Introduction}
 \label{sec:intro}
 
+When choosing a hotel, people increasingly trust the words of strangers online.
+Studies have shown that people are strongly influenced by these reviews; negative information tends to weigh more heavily, while positively framed reviews combined with numerical ratings increase both booking intentions and trust in a hotel \citep{Sparks2011}. 
+For this reason, hotels care about their reviews, as these can affect booking intentions.
+One concern for both hotels and customers is fake reviews, also known as opinion spam.
+
+Large language models (LLMs) have improved substantially in recent years and excel especially at writing tasks.
+Before this, the volume of fake reviews was likely limited by human writing speed, time and energy.
+Now, LLMs can generate reviews rapidly, outpacing humans, and deceptive reviews are becoming increasingly common \citep{Ignat2025}.
+Platforms such as Amazon have already reported a surge of ChatGPT-generated fake reviews, which reduce consumer trust in online reviews and harm seller performance \citep{Zhao2025}. 
+Therefore, automated methods are needed to filter out AI-generated reviews.
+
+Prior work has found that AI-generated fake reviews are more comprehensible, less specific, more mechanical and less empathetic than authentic reviews \citep{Zhao2025}. 
+In a recent study, \citet{Ignat2025} collected real hotel reviews from Booking.com and generated fake ones with GPT-4.
+However, \citeauthor{Ignat2025} only compared two models, Gaussian Naive Bayes and Random Forests, to a fine-tuned deep learning model.
+We expand on their research by comparing a wider range of bag-of-words models.
+
+In this paper, we investigate how well simple bag-of-words models can distinguish AI-generated hotel reviews from human-written reviews.
+We use the English reviews from the MAiDE-up dataset\footnote{\url{https://github.com/MichiganNLP/multilingual_reviews_deception}} \citep{Ignat2025}, which contains both positive and negative reviews, written by humans and generated with GPT-4.
+We compare five models: Multinomial Naive Bayes, Logistic Regression, a Decision Tree, Random Forest and Gradient Boosting.
+These models were chosen because they are computationally efficient and interpretable, which allows us to inspect which words drive their predictions.
+We address the following research questions:
+\begin{enumerate}
+  \item Does a discriminative linear model (Logistic Regression) outperform a generative one (Multinomial Naive Bayes)?
+  \item Does combining many trees into an ensemble (Random Forest and Gradient Boosting) improve on a single Decision Tree?
+  \item Is the Random Forest better at telling fake from genuine reviews when the reviews are positive or when they are negative?
+  \item Which words are most predictive for each model, and which of them point towards AI-generated or human-written reviews?
+\end{enumerate}
+Answering these questions shows whether more complex models are worth their cost for this task, and which linguistic cues give AI-generated reviews away.
+
+The remainder of this paper is structured as follows.
+\sectionref{sec:data} describes the dataset and \sectionref{sec:preprocessing} the preprocessing steps.
+\sectionref{sec:setup} explains the models, the hyperparameter tuning and the statistical test used to compare the models.
+\sectionref{sec:results} presents the performance of the models, the results of McNemar's test and the most important features.
+Finally, \sectionref{sec:conclusions} summarizes our findings and discusses limitations and future work.
+
 \section{Data}
 \label{sec:data}
+This study investigates the detection of fake hotel reviews by distinguishing between human-written reviews and AI generated reviews. 
+The dataset thus, contains the two classes 0 (human) and 1 (AI). For this study, the dataset was restricted to English-language reviews to ensure linguistic consistency. 
+Further, this restriction facilitates the application of natural language processing techniques and allows the analysis to focus on differences 
+between human and AI-generated reviews rather than on variations based on language-specific characteristics. 
+However, our findings may not generalize to reviews written in other languages.
+
+The filtered dataset consists of overall 2.000 reviews with 1000 genuine reviews and 1000 AI-generated reviews. 
+This balanced class distribution provides an appropriate basis to compare the linguistic characteristics without introducing an initial class imbalance. 
+First, the two review columns \texttt{Upside_Review} and \texttt{Downside_Review}, were combined into a single column \texttt{Review}. 
+This summarizes the positive and negative aspects of each hotel review into a single text field for subsequent analysis.
+In addition, the column \texttt{Sentiment} was included, which categorizes each review as either positive or negative. 
+The two sentiment categories are thereby equally represented in the dataset. 
+
+To obtain an initial overview of the textual characteristics of the two classes, corresponding word clouds were generated (Figure ~\ref{fig:wordcloud_human}, Figure ~\ref{fig:wordcloud_ai}). 
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.8\textwidth]{figures/wordcloud_human.png}
+    \caption{Word cloud of human-written hotel reviews.}
+    \label{fig:wordcloud_human}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.8\textwidth]{figures/wordcloud_ai.png}
+    \caption{Word cloud of AI-generated hotel reviews.}
+    \label{fig:wordcloud_ai}
+\end{figure}
+
+Word clouds visualize the most frequently occurring words in a text corpus, with the size of each word representing its relative frequency. 
+They provide an accessible overview of the vocabulary used in each group and can help identify potential differences between the two types of reviews. 
+The word frequencies show similarities between the two groups: words such as „the“, „and“, and „was“ occur frequently in both sources. 
+This can be explained by the grammatical structure and the descriptive nature of hotel reviews. 
+However, slight differences can also be observed for example „hotel“ occurring 858 times in the AI-generated reviews and 461 times in the human-written reviews.  
+
+Overall, the initial data exploration revealed no substantial differences in word frequency or obvious class imbalances. 
+We therefore conducted a more detailed analysis of punctuation usage (e.g., commas, semicolons, periods, question marks, etc.) and the frequency of contractions to identify potential differences between human and AI-generated reviews. 
+The objective was to use these findings to better justify the preprocessing decisions. Our approach was to maintain features that differed between the two classes, as they were considered potentially informative for classification. 
+When both classes showed similar patterns, we applied normalization to reduce irrelevant variation and ensure consistent text representation. 
+This follows the recommendations of \citet{Hickman2022}, who emphasize that preprocessing decisions should be guided by the research objective and the characteristics of the dataset.
 
 \section{Data Preprocessing}
 \label{sec:preprocessing}
+Data preprocessing is a fundamental step in natural language processing (NLP), where raw textual data often contain inconsistencies and features that are not directly suitable for computational analysis. 
+The objective of preprocessing is to transform the original reviews into a consistent representation while preserving the linguistic information. 
+In this study, the preprocessing phase includes two preliminary operations, shown in (Figure ~\ref{fig:pipeline}), which help in transforming the data before the actual classification task. 
 
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.8\textwidth]{figures/pipeline.png}
+    \caption{Steps and Techniques used in Sentiment Analysis.}
+    \label{fig:pipeline}
+\end{figure}
+
+\subsection{Normalization}
+\label{sec:normalization}
+Text normalization is the first step in preprocessing and aims to transform the original text into a more consistent format. 
+In this study, unicode normalization, accent removal, and conversion to lowercase were applied. 
+Additionally, multiple consecutive whitespaces were replaced with a single whitespace. 
+These steps reduce variations and ensure that equivalent terms are represented consistently. 
+This is particularly useful for text classification, as differences in capitalization or character encoding could otherwise lead to identical terms being treated as separate features.
+
+However, normalization requires careful consideration because certain textual characteristics may provide useful information to distinguish human and AI-generated reviews \cite{Shah2023}. 
+Therefore, our preprocessing decisions were guided by an exploratory analysis of the dataset to identify differences between the two classes.
+The analysis shows differences in the use of punctuation marks and numbers. Human-written reviews contained more question marks and exclamation marks per 1000 words than AI-generated reviews (0.63 vs. 0.02 and 5.66 vs. 0.85, respectively). 
+In contrast, AI-generated reviews contained more commas per 1000 words (49.02 vs. 35.06). 
+Differences were also observed in the use of colons and quotation marks. Furthermore, human-written reviews contained substantially more numbers per 1000 words than AI-generated reviews (11.46 vs. 0.83). 
+These findings suggest that punctuation and numerical information may capture stylistic differences.
+
+A similar pattern emerged for contractions. Human-written reviews contained 10.22 contractions per 1000 words, compared with 5.57 in AI-generated reviews. 
+Thus, contractions may also provide potentially useful information for classification. Based on these findings, we decided to keep numbers, punctuation marks, and contractions during text normalization. 
+
+This approach aims to balance textual consistency with the preservation of features that may help the model distinguish between the two classes. 
+Nevertheless, the observed differences are descriptive and do not necessarily imply that these features will improve classification performance.
+
+\subsection{Tokenization}
+\label{sec:tokenization}
+After normalization, the reviews are split into individual tokens that can be processed by machine learning algorithms. 
+Several tokenization strategies exist, ranging from simple whitespace tokenization to more sophisticated subword-based approaches. 
+For example, SentencePiece supports Byte Pair Encoding (BPE) and the Unigram Language Model, which learn subword units and do not require whitespace to define fixed word boundaries \cite{Kudo2018}. 
+Such approaches are particularly useful for languages such as Chinese and Japanese, where words are not consistently separated by spaces.
+
+In this project, we applied whitespace tokenization, which splits the text at whitespace characters to obtain individual tokens. 
+We chose this approach since the dataset was restricted to English reviews, in which spaces generally separate words. 
+This makes whitespace tokenization a simple and computationally efficient option. 
+However, it does not account for all linguistic complexities, such as contractions or punctuation attached to words. 
+The previously applied normalization steps aim to standardize the text and reduce these potential inconsistencies. 
+The resulting tokens are then used for the subsequent stop-word removal and stemming steps.
+
+\subsection{Stop-Word Removal}
+\label{sec:stop-word-removal}
+After tokenization, common English stop words are removed. Stop words are frequently occurring terms that only contribute little information to text classification, including articles, prepositions, and conjunctions. 
+Examples involve \textit{the}, \textit{a}, \textit{and}, and \textit{or}. Thereby, their frequent occurrence across documents can increase the size of the feature representation without necessarily improving the model's ability to distinguish between classes.
+
+In this study, the English stop-word list provided by the Natural Language Toolkit (NLTK) is used. 
+Removing these words allows the analysis to focus more strongly on terms that may be informative for distinguishing. 
+For example, rather than emphasizing frequently occurring grammatical words such as the and and, the resulting representation places greater emphasis on descriptive terms related to hotel rooms, staff, service, and location.
+
+Stop-word removal in general is a common preprocessing technique in text classification, although its effectiveness depends on the task. 
+Based on the initial word frequency analysis, frequent function words did not appear to be particularly useful for distinguishing the two classes. 
+Therefore, we removed these words to focus on content-related terms that may be more informative for classification. 
+However, since common words can also contain stylistic information, the suitability of stop-word removal depends on the specific classification task.
+
+\subsection{Stemming}
+\label{sec:stemming}
+The next preprocessing step is stemming, which reduces words to a common stem by removing certain prefixes or suffixes. 
+This process helps to group related word forms and reduces the number of distinct terms in the vocabulary. 
+For example, words such as \textit{connect}, \textit{connected}, and \textit{connecting} may be reduced to a common stem. 
+Compared to stop-word removal, stemming generally preserves more of the original textual content, as it changes the form of words rather than removing them entirely. 
+This can reduce vocabulary redundancy and improve computational efficiency during model training.
+
+For this study the Porter stemming algorithm is applied, since it is a widely used method designed specifically for English \cite{Willett2006}. 
+By consolidating related word forms, stemming reduces lexical variation and can help machine learning models identify recurring patterns across reviews, even when the same concept appears in different grammatical forms.
+
+However, stemming does not necessarily produce linguistically valid words. It applies rule-based transformations to obtain stems rather than complete dictionary forms. 
+Furthermore, different words may occasionally be reduced to the same stem despite having different meanings. 
+Neverthelsee, we applied stemming in this project to reduce vocabulary size and group related word forms. 
+Since the dataset is restricted to English hotel reviews, the vocabulary is relatively focused on a specific domain, which helps to limit the potential drawbacks of stemming. 
+Although these limitations cannot be entirely avoided, the domain-specific context makes stemming a reasonable choice for this classification task.
+
+\subsection{Training and Test Split}
+\label{sec:train-test-split}
+The final step is to divide the preprocessed dataset into training and test subsets. 
+The training data is used to fit the classification models, whereas the test data is kept for evaluation. 
+We applied stratified splitting to preserve the 50/50 class distribution in both data sets. 
+This ensures that both classes are equally represented during training, such that the model can learn patterns from human-written and AI-generated reviews without favoring one class due to different class frequencies. 
+A separate validation set is not necessarily required for this experimental setup since we use use cross-validation for the final evaluation. 
 
 \section{Experimental Setup}
 \label{sec:setup}
