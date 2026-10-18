@@ -23,8 +23,8 @@ from scipy.stats import chi2_contingency
 RANDOM_STATE = 42
 CROSS_VALIDATION_SPLITS = 5
 TOP_N_FEATURES = 5
-TRAIN_FILE = "data/train.csv"
-TEST_FILE = "data/test.csv"
+TRAIN_FILE = "data/train_v.1.csv"
+TEST_FILE = "data/test_v.1.csv"
 RESULTS_DIR = Path("results")
 CLASS_NAMES = {0: "human", 1: "AI"}
 

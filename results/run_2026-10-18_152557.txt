@@ -1,0 +1,170 @@
+===== Settings =====
+  CV folds:     5
+  Random seed:  42
+
+
+===== Data =====
+  Train: 1500 reviews, {'human': 750, 'AI': 750}
+  Test:  500 reviews, {'AI': 250, 'human': 250}
+
+
+===== Hyperparameter Tuning (CV) =====
+
+--- Logistic Regression ---
+  Best params:
+    C: 1
+    min_df: 1
+  CV accuracy:  0.9013
+
+--- Naive Bayes ---
+  Best params:
+    k: all
+    min_df: 3
+  CV accuracy:  0.8993
+
+--- Decision Tree ---
+  Best params:
+    ccp_alpha: 0.001732
+  CV accuracy:  0.7820
+
+--- Random Forest ---
+  Best params:
+    max_features: log2
+    n_estimators: 500
+    min_df: 1
+  CV accuracy:  0.9053
+
+--- Gradient Boosting ---
+  Best params:
+    learning_rate: 0.2
+    max_depth: 1
+    n_estimators: 300
+  CV accuracy:  0.8927
+
+
+===== Test Set Results =====
+
+--- Logistic Regression ---
+  Accuracy:   0.8960
+  Precision:  0.9091
+  Recall:     0.8800
+  F1 Score:   0.8943
+
+--- Naive Bayes ---
+  Accuracy:   0.9220
+  Precision:  0.8922
+  Recall:     0.9600
+  F1 Score:   0.9249
+
+--- Decision Tree ---
+  Accuracy:   0.7800
+  Precision:  0.7966
+  Recall:     0.7520
+  F1 Score:   0.7737
+
+--- Random Forest ---
+  Accuracy:   0.9100
+  Precision:  0.9556
+  Recall:     0.8600
+  F1 Score:   0.9053
+
+--- Gradient Boosting ---
+  Accuracy:   0.8880
+  Precision:  0.9076
+  Recall:     0.8640
+  F1 Score:   0.8852
+
+
+===== McNemar's Test: Logistic Regression vs Naive Bayes =====
+                                    Naive Bayes correct    Naive Bayes incorrect
+Logistic Regression correct                         421                       27
+Logistic Regression incorrect                        40                       12
+Stat: 2.1493, p-value: 0.1426
+
+
+===== McNemar's Test: Random Forest vs Decision Tree =====
+                                  Decision Tree correct  Decision Tree incorrect
+Random Forest correct                               371                       84
+Random Forest incorrect                              19                       26
+Stat: 39.7670, p-value: 0.0000
+
+
+===== McNemar's Test: Gradient Boosting vs Decision Tree =====
+                                  Decision Tree correct  Decision Tree incorrect
+Gradient Boosting correct                           370                       74
+Gradient Boosting incorrect                          20                       36
+Stat: 29.8830, p-value: 0.0000
+
+
+===== Random Forest by Review Polarity =====
+
+--- Random Forest, NEG reviews ---
+  Accuracy:   0.9252
+  Precision:  0.9746
+  Recall:     0.8779
+  F1 Score:   0.9237
+
+--- Random Forest, POS reviews ---
+  Accuracy:   0.8943
+  Precision:  0.9346
+  Recall:     0.8403
+  F1 Score:   0.8850
+
+
+===== Chi-square Test: Random Forest accuracy by review polarity =====
+                         correct   incorrect    accuracy
+NEG                          235          19      0.9252
+POS                          220          26      0.8943
+Stat: 1.1031, p-value: 0.2936
+
+
+===== Top Features =====
+
+Top 5 features for Naive Bayes (AI):
+  notch: 3.2481
+  bucharest: 3.1528
+  downsid: 3.0097
+  furthermore: 2.8871
+  desired: 2.8871
+
+Top 5 features for Naive Bayes (human):
+  told: -3.7142
+  said: -3.5806
+  10: -3.5065
+  com: -3.5065
+  etc: -3.3395
+
+Top 5 features for Logistic Regression (AI):
+  lack: 2.5434
+  delight: 2.2315
+  heart: 2.2170
+  limit: 2.0602
+  proxim: 1.9040
+
+Top 5 features for Logistic Regression (human):
+  construct: -2.3260
+  book: -2.1892
+  like: -1.5718
+  fine: -1.5499
+  door: -1.4353
+
+Top 5 features for Decision Tree:
+  hotel: 0.1332  (in 60% AI, 29% human reviews)
+  servic: 0.1123  (in 29% AI, 6% human reviews)
+  good: 0.0557  (in 14% AI, 28% human reviews)
+  central: 0.0529  (in 16% AI, 3% human reviews)
+  staff: 0.0476  (in 69% AI, 40% human reviews)
+
+Top 5 features for Random Forest:
+  servic: 0.0133  (in 29% AI, 6% human reviews)
+  staff: 0.0128  (in 69% AI, 40% human reviews)
+  room: 0.0126  (in 81% AI, 53% human reviews)
+  hotel: 0.0113  (in 60% AI, 29% human reviews)
+  lack: 0.0087  (in 14% AI, 1% human reviews)
+
+Top 5 features for Gradient Boosting:
+  servic: 0.0863  (in 29% AI, 6% human reviews)
+  staff: 0.0801  (in 69% AI, 40% human reviews)
+  hotel: 0.0650  (in 60% AI, 29% human reviews)
+  room: 0.0561  (in 81% AI, 53% human reviews)
+  lack: 0.0454  (in 14% AI, 1% human reviews)

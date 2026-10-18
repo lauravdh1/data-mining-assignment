@@ -5,7 +5,7 @@
 
  %\usepackage{rotating}% for sideways figures and tables
 \usepackage{longtable}% for long tables
-
+\usepackage{float}
  % The booktabs package is used by this sample document
  % (it provides \toprule, \midrule and \bottomrule).
  % Remove the next line if you don't require it.
@@ -55,7 +55,7 @@
 
  % Three or more authors with the same address:
  \author{\Name{Laura van der Hoef} \Email{l.g.s.vanderhoef@students.uu.nl}\\
-  \Name{Author Name2} \Email{an2@sample.com}\\
+  \Name{Mateusz Hibner} \Email{m.hibner@students.uu.nl}\\
   \Name{Author Name3} \Email{an3@sample.com}\\
   \addr Address}
 
@@ -120,7 +120,7 @@ However, our findings may not generalize to reviews written in other languages.
 
 The filtered dataset consists of overall 2.000 reviews with 1000 genuine reviews and 1000 AI-generated reviews. 
 This balanced class distribution provides an appropriate basis to compare the linguistic characteristics without introducing an initial class imbalance. 
-First, the two review columns \texttt{Upside_Review} and \texttt{Downside_Review}, were combined into a single column \texttt{Review}. 
+First, the two review columns \texttt{Upside\_Review} and \texttt{Downside\_Review}, were combined into a single column \texttt{Review}. 
 This summarizes the positive and negative aspects of each hotel review into a single text field for subsequent analysis.
 In addition, the column \texttt{Sentiment} was included, which categorizes each review as either positive or negative. 
 The two sentiment categories are thereby equally represented in the dataset. 
@@ -142,9 +142,9 @@ To obtain an initial overview of the textual characteristics of the two classes,
 
 Word clouds visualize the most frequently occurring words in a text corpus, with the size of each word representing its relative frequency. 
 They provide an accessible overview of the vocabulary used in each group and can help identify potential differences between the two types of reviews. 
-The word frequencies show similarities between the two groups: words such as „the“, „and“, and „was“ occur frequently in both sources. 
+The word frequencies show similarities between the two groups: words such as ``the'', ``and'', and ``was'' occur frequently in both sources. 
 This can be explained by the grammatical structure and the descriptive nature of hotel reviews. 
-However, slight differences can also be observed for example „hotel“ occurring 858 times in the AI-generated reviews and 461 times in the human-written reviews.  
+However, slight differences can also be observed for example ``hotel'' occurring 858 times in the AI-generated reviews and 461 times in the human-written reviews.  
 
 Overall, the initial data exploration revealed no substantial differences in word frequency or obvious class imbalances. 
 We therefore conducted a more detailed analysis of punctuation usage (e.g., commas, semicolons, periods, question marks, etc.) and the frequency of contractions to identify potential differences between human and AI-generated reviews. 
@@ -247,7 +247,7 @@ This approach provides a method for representing text data by treating word coun
 Each model was tuned using a grid search with 5-fold cross-validation to identify the optimal hyperparameters (\tableref{tab:hyperparameters}).
 5-fold cross-validation was chosen to balance the need for robust evaluation against the limitations of the dataset size and available computational time.
 
-\begin{table}[htbp]
+\begin{table}[H]
 \floatconts
   {tab:hyperparameters}%
   {\caption{Hyperparameter grids searched with 5-fold cross-validation and the selected values. Parameter names follow scikit-learn; min\_df not listed means the default of 1 was used.}}%
@@ -255,21 +255,21 @@ Each model was tuned using a grid search with 5-fold cross-validation to identif
   \toprule
   \bfseries Model & \bfseries Hyperparameter & \bfseries Grid & \bfseries Selected\\
   \midrule
-  Naive Bayes & min\_df & $\{1, 2, 3, 5, 10\}$ & 5\\
+  Naive Bayes & min\_df & $\{1, 2, 3, 5, 10\}$ & 3\\
    & $k$ & $\{50, 100, 200, 300, 500, \text{all}\}$ & all\\
   \midrule
-  Logistic Regression & min\_df & $\{1, 2, 3, 5, 10\}$ & 3\\
-   & $C$ & 15 log-spaced in $[0.01, 100]$ & 1.931\\
+  Logistic Regression & min\_df & $\{1, 2, 3, 5, 10\}$ & 1\\
+   & $C$ & 15 log-spaced in $[0.01, 100]$ & 1\\
   \midrule
-  Decision Tree & ccp\_alpha & all $\alpha$ on the pruning path & 0.0044\\
+  Decision Tree & ccp\_alpha & all $\alpha$ on the pruning path & 0.0017\\
   \midrule
-  Random Forest & min\_df & $\{1, 2, 5\}$ & 2\\
+  Random Forest & min\_df & $\{1, 2, 5\}$ & 1\\
    & max\_features & $\{\sqrt{p}, \log_2 p, 0.05p, 0.1p\}$ & $\log_2 p$\\
    & n\_estimators & $\{100, 300, 500\}$ & 500\\
   \midrule
   Gradient Boosting & learning\_rate & $\{0.05, 0.1, 0.2\}$ & 0.2\\
    & n\_estimators & $\{100, 300\}$ & 300\\
-   & max\_depth & $\{1, 3, 5\}$ & 3\\
+   & max\_depth & $\{1, 3, 5\}$ & 1\\
   \bottomrule
   \end{tabular}}
 \end{table}
@@ -304,6 +304,9 @@ In addition to accuracy, precision, recall and F1-score, we used McNemar's test 
 McNemar's test is computationally efficient and requires only a single train/test split, suiting our setup.
 We compared Naive Bayes and Logistic Regression because they represent the generative and discriminative models, respectively \citep{Ng2001}.
 The results of this test will indicate whether for this text classification task it is more effective to model the estimated generative probability of the words or to model the class boundary more directly.
+To evaluate whether combining multiple trees enhances predictive performance, we also
+implemented Random Forest and Gradient Boosting classifiers. We apply McNemar's test to
+compare each ensemble model against the Decision Tree baseline.
 % Motivate McNemar comparison of other models here (Q2)
 
 We used the McNemar formula as follows:
@@ -320,7 +323,7 @@ The null hypothesis states that both models perform with equal accuracy, while t
 \subsection{Performance}
 \label{sec:performance}
 
-\begin{table}[htbp]
+\begin{table}[H]
 \floatconts
   {tab:performance}%
   {\caption{Cross-validation accuracy on the training set and test set performance of the final models.}}%
@@ -328,11 +331,11 @@ The null hypothesis states that both models perform with equal accuracy, while t
   \toprule
   \bfseries Model & {\bfseries CV accuracy} & {\bfseries Accuracy} & {\bfseries Precision} & {\bfseries Recall} & {\bfseries F1}\\
   \midrule
-  Naive Bayes & 0.9005 & 0.8980 & 0.8566 & 0.9560 & 0.9036\\
-  Logistic Regression & 0.9071 & 0.9020 & 0.9170 & 0.8840 & 0.9002\\
-  Decision Tree & 0.7889 & 0.7800 & 0.7652 & 0.8080 & 0.7860\\
-  Random Forest & 0.9172 & 0.8960 & 0.9195 & 0.8680 & 0.8930\\
-  Gradient Boosting & 0.9078 & 0.9000 & 0.9098 & 0.8880 & 0.8988\\
+  Naive Bayes & 0.8993 & 0.9220 & 0.8922 & 0.9600 & 0.9249\\
+  Logistic Regression & 0.9013 & 0.8960 & 0.9091 & 0.8800 & 0.8943\\
+  Decision Tree & 0.7820 & 0.7800 & 0.7966 & 0.7520 & 0.7737\\
+  Random Forest & 0.9053 & 0.9100 & 0.9556 & 0.8600 & 0.9053\\
+  Gradient Boosting & 0.8927 & 0.8880 & 0.9076 & 0.8640 & 0.8852\\
   \bottomrule
   \end{tabular}}
 \end{table}
@@ -344,8 +347,13 @@ Naive Bayes has a higher recall (0.956) but lower precision (0.857), so it misse
 Logistic Regression shows the opposite pattern with a higher precision (0.917) and lower recall (0.884).
 This means it incorrectly flags fewer human reviews as AI-generated.
 In comparison to the other models, the Decision Tree performs worst on all metrics.
-It has an accuracy of 0.780 and an F1-score of 0.786.
-It shows a similar error pattern to Naive Bayes where its recall (0.808) is higher than its precision (0.765). However, the difference is smaller in comparison.
+It has an accuracy of 0.780 and an F1-score of 0.774.
+It shows a similar error pattern to Logistic Regression where its recall (0.752) is lower than its precision (0.797).
+Both tree ensembles improve on the single Decision Tree.
+Random Forest achieves the highest cross-validation accuracy of all models (0.905) and a test accuracy of 0.910, second only to Naive Bayes.
+It also has the highest precision of all models (0.956), so it rarely labels human reviews as AI-generated.
+Gradient Boosting reaches a slightly lower accuracy (0.888) and F1-score (0.885).
+Both ensembles show the same pattern as Logistic Regression, with a lower recall (0.860 and 0.864) than precision (0.956 and 0.908), meaning they miss more AI-generated reviews than they wrongly flag human ones.
 
 \subsection{Statistical Tests}
 \label{sec:statistical-tests}
@@ -356,16 +364,50 @@ Logistic regression misclassifies 28 reviews that Naive Bayes correctly identifi
 Given the proximity of these numbers, McNemar's test gives $p = 0.896 > 0.01$, so we failed to reject the null hypothesis.
 This means Logistic Regression and Naive Bayes do not differ significantly in accuracy.
 
-\begin{table}[htbp]
+\begin{table}[H]
 \floatconts
   {tab:mcnemar-lr-nb}%
-  {\caption{McNemar contingency table for Logistic Regression vs.\ Naive Bayes on the test set ($\chi^2 = 0.017$, $p = 0.896$).}}%
+  {\caption{McNemar contingency table for Logistic Regression vs.\ Naive Bayes on the test set ($\chi^2 = 2.149$, $p = 0.143$).}}%
   {\begin{tabular}{lcc}
   \toprule
   & \bfseries NB correct & \bfseries NB incorrect\\
   \midrule
-  \bfseries LR correct & 421 & 30\\
-  \bfseries LR incorrect & 28 & 21\\
+  \bfseries LR correct & 421 & 27\\
+  \bfseries LR incorrect & 40 & 12\\
+  \bottomrule
+  \end{tabular}}
+\end{table}
+
+To evaluate whether tree ensembles significantly improve upon the single Decision Tree baseline, we also performed McNemar's tests comparing Random Forest and Gradient Boosting against the Decision Tree. 
+
+For Random Forest versus the Decision Tree, both models correctly classified 371 instances, while Random Forest corrected 84 errors made by the Decision Tree and made 19 new errors. This yields $\chi^2 = 39.77$ ($p < 0.001$), leading to a rejection of the null hypothesis at $\alpha = 0.01$ and confirming that Random Forest significantly outperforms the single Decision Tree.
+
+\begin{table}[H]
+\floatconts
+  {tab:mcnemar-rf-dt}%
+  {\caption{McNemar contingency table for Random Forest vs.\ Decision Tree on the test set ($\chi^2 = 39.77$, $p < 0.001$).}}%
+  {\begin{tabular}{lcc}
+  \toprule
+  & \bfseries DT correct & \bfseries DT incorrect\\
+  \midrule
+  \bfseries RF correct & 371 & 84\\
+  \bfseries RF incorrect & 19 & 26\\
+  \bottomrule
+  \end{tabular}}
+\end{table}
+
+Similarly, Gradient Boosting correctly classified 370 instances in agreement with the Decision Tree, corrected 74 errors, and made 20 new errors. This results in $\chi^2 = 29.88$ ($p < 0.001$), also indicating a statistically significant improvement over the single Decision Tree baseline.
+
+\begin{table}[H]
+\floatconts
+  {tab:mcnemar-gb-dt}%
+  {\caption{McNemar contingency table for Gradient Boosting vs.\ Decision Tree on the test set ($\chi^2 = 29.88$, $p < 0.001$).}}%
+  {\begin{tabular}{lcc}
+  \toprule
+  & \bfseries DT correct & \bfseries DT incorrect\\
+  \midrule
+  \bfseries GB correct & 370 & 74\\
+  \bfseries GB incorrect & 20 & 36\\
   \bottomrule
   \end{tabular}}
 \end{table}
@@ -373,7 +415,7 @@ This means Logistic Regression and Naive Bayes do not differ significantly in ac
 \subsection{Feature Importance}
 \label{sec:feature-importance}
 
-\begin{table}[htbp]
+\begin{table}[H]
 \floatconts
   {tab:top-features-linear}%
   {\caption{Top 5 features of the linear models. For Naive Bayes the score is the log-probability ratio $\log P(w \mid \text{AI}) - \log P(w \mid \text{human})$; for Logistic Regression it is the L1 coefficient. Positive scores point towards AI-generated, negative towards human-written reviews.}}%
@@ -383,11 +425,11 @@ This means Logistic Regression and Naive Bayes do not differ significantly in ac
   \cmidrule(lr){1-4}\cmidrule(lr){5-8}
   \multicolumn{2}{c}{AI} & \multicolumn{2}{c}{Human} & \multicolumn{2}{c}{AI} & \multicolumn{2}{c}{Human}\\
   \midrule
-  delight & 3.4233 & told & -3.8778 & delight & 3.5810 & enter & -3.7465\\
-  notch & 3.2563 & said & -3.6414 & lack & 2.8383 & etc & -2.7759\\
-  desir & 3.2255 & never & -3.6075 & offer & 2.8076 & big & -2.6572\\
-  inconsist & 3.1938 & com & -3.4183 & stylish & 2.5321 & fan & -2.5060\\
-  lastli & 3.1610 & second & -3.3313 & notch & 2.5021 & us & -2.1774\\
+  notch & 3.2481 & told & -3.7142 & lack & 2.5434 & construct & -2.3260\\
+  bucharest & 3.1528 & said & -3.5806 & delight & 2.2315 & book & -2.1892\\
+  downsid & 3.0097 & 10 & -3.5065 & heart & 2.2170 & like & -1.5718\\
+  furthermore & 2.8871 & com & -3.5065 & limit & 2.0602 & fine & -1.5499\\
+  desired & 2.8871 & etc & -3.3395 & proxim & 1.9040 & door & -1.4353\\
   \bottomrule
   \end{tabular}}
 \end{table}
@@ -422,15 +464,23 @@ A limitation of the linear models is the bag-of-words representation, which obsc
 
 
 
-The top five features for the Decision Tree (\tableref{tab:top-features-trees}), ranked by Gini importance, are: \emph{servic}, \emph{staff}, \emph{room}, \emph{lack}, and \emph{good}.
+The top five features for the Decision Tree (\tableref{tab:top-features-trees}), ranked by Gini importance, are: \emph{hotel}, \emph{servic}, \emph{good}, \emph{central}, and \emph{staff}.
 These features show no overlap with the linear models.
-However, unlike the previous models, the AI-associated words are mainly about the hotel itself, such as \emph{servic} (service), \emph{staff} and \emph{room}, likely because the tree favours common words that split many reviews.
-The only exception is \emph{good}, which is associated with human reviews.
-This word also has a significantly lower Gini importance than the other top four features.
-Although descriptive words are mostly associated with AI in the other models, \emph{good} points towards human reviews. This could be because AI uses more polished language (e.g., \emph{delight}, \emph{top-notch}, \emph{stylish}) to appear convincing, whereas humans may use simpler, more neutral adjectives like \emph{good} to express satisfaction.
+However, unlike the previous models, the AI-associated words are mainly about the hotel itself, such as \emph{hotel}, \emph{servic} (service), \emph{staff} and \emph{central}, likely because the tree favours common words that split many reviews.
+For example, \emph{hotel} appears in 60\% of the AI-generated training reviews but only in 29\% of the human-written ones, which is consistent with the word frequency analysis in \sectionref{sec:data}.
+\emph{Central} is rarer but more one-sided, appearing in 16\% of AI-generated and 3\% of human-written reviews.
+The only exception is \emph{good}, which is associated with human reviews (28\% of human-written vs.\ 14\% of AI-generated reviews).
+Although descriptive words are mostly associated with AI in the other models, \emph{good} points towards human reviews. This could be because AI uses more polished language (e.g., \emph{delight}, \emph{top-notch}) to appear convincing, whereas humans may use simpler, more neutral adjectives like \emph{good} to express satisfaction.
+
+Random Forest and Gradient Boosting share exactly the same top five features, \emph{servic}, \emph{staff}, \emph{hotel}, \emph{room}, and \emph{lack}, only in a different order, and all of them point towards AI-generated reviews.
+Three of these (\emph{hotel}, \emph{servic} and \emph{staff}) are also among the top features of the Decision Tree, suggesting that the ensembles rely on the same hotel-related vocabulary as the single tree.
+In contrast to the Decision Tree, both ensembles rank \emph{lack} (in 14\% of AI-generated vs.\ 1\% of human-written reviews) among their top features.
+\emph{Lack} is also the top AI feature of Logistic Regression, making it the only word shared between a tree-based and a linear model.
+The importances of the ensembles are spread more evenly across the top words than those of the Decision Tree, since each word's importance is averaged over many trees.
+For Gradient Boosting, the selected $\text{max\_depth}$ of 1 means that each tree is a single split on one word, so the model is an additive combination of individual word effects without interactions between words.
 
 
-\begin{table}[htbp]
+\begin{table}[H]
 \floatconts
   {tab:top-features-trees}%
   {\caption{Top 5 features of the tree-based models, ranked by Gini importance. Direction is the class with the larger share of training reviews containing the word.}}%
@@ -438,16 +488,35 @@ Although descriptive words are mostly associated with AI in the other models, \e
   \toprule
   \multicolumn{3}{c}{\bfseries Decision Tree} & \multicolumn{3}{c}{\bfseries Random Forest} & \multicolumn{3}{c}{\bfseries Gradient Boosting}\\
   \midrule
-  servic & 0.2629 & AI & room & 0.0209 & AI & servic & 0.1047 & AI\\
-  staff & 0.1899 & AI & servic & 0.0201 & AI & room & 0.0921 & AI\\
-  room & 0.0998 & AI & staff & 0.0131 & AI & staff & 0.0754 & AI\\
-  lack & 0.0765 & AI & hotel & 0.0128 & AI & lack & 0.0352 & AI\\
-  good & 0.0561 & Human & lack & 0.0109 & AI & central & 0.0314 & AI\\
+  hotel & 0.1332 & AI & servic & 0.0133 & AI & servic & 0.0863 & AI\\
+  servic & 0.1123 & AI & staff & 0.0128 & AI & staff & 0.0801 & AI\\
+  good & 0.0557 & Human & room & 0.0126 & AI & hotel & 0.0650 & AI\\
+  central & 0.0529 & AI & hotel & 0.0113 & AI & room & 0.0561 & AI\\
+  staff & 0.0476 & AI & lack & 0.0087 & AI & lack & 0.0454 & AI\\
   \bottomrule
   \end{tabular}}
 \end{table}
 
+\subsection{Performance by Review Polarity}
+\label{sec:polarity}
 
+To investigate whether the selected Random Forest classifier performs better at distinguishing between fake and genuine reviews for positive versus negative sentiment, we evaluated its test set performance separately across positive and negative review subsets. 
+
+As shown in \tableref{tab:polarity-rf}, Random Forest achieves slightly higher accuracy on negative reviews (0.9252) compared to positive reviews (0.8943), along with higher precision (0.9746 vs.\ 0.9346) and F1-score (0.9237 vs.\ 0.8850). To test whether this difference in accuracy is statistically significant, we performed a chi-square test on the contingency table of correct and incorrect classifications by sentiment polarity. The test yielded $\chi^2 = 1.1031$ ($p = 0.2936 > 0.01$), indicating that we fail to reject the null hypothesis. Consequently, the Random Forest model's ability to detect AI-generated reviews does not differ significantly between positive and negative reviews.
+
+\begin{table}[H]
+\floatconts
+  {tab:polarity-rf}%
+  {\caption{Random Forest performance by review polarity (positive vs.\ negative) and contingency table for accuracy ($\chi^2 = 1.103$, $p = 0.2936$).}}%
+  {\begin{tabular}{lcccccc}
+  \toprule
+  \bfseries Polarity & \bfseries Accuracy & \bfseries Precision & \bfseries Recall & \bfseries F1 & \bfseries Correct & \bfseries Incorrect\\
+  \midrule
+  Negative & 0.9252 & 0.9746 & 0.8779 & 0.9237 & 235 & 19\\
+  Positive & 0.8943 & 0.9346 & 0.8403 & 0.8850 & 220 & 26\\
+  \bottomrule
+  \end{tabular}}
+\end{table}
 \section{Limitations and Future Work}
 \label{sec:sec:limitations-and-futurework}
 
@@ -488,6 +557,8 @@ Claude was used for finding spelling \& grammar mistakes and providing suggestio
 I used ChatGPT to assist with debugging code and to create visualizations using matplotlib. 
 Additionally, ChatGPT was used to support Latex formatting, particularly for including references and figures in the report.
 
+\paragraph{Mateusz Hibner}
+I used Claude Opus 5.5 to explain errors, debug, and clean up my code. I also used it to help with Latex formatting, such as creating tables.
 \appendix
 
 \section{First Appendix}\label{apd:first}
