@@ -448,6 +448,27 @@ Although descriptive words are mostly associated with AI in the other models, \e
 \end{table}
 
 
+\section{Limitations and Future Work}
+\label{sec:sec:limitations-and-futurework}
+
+The results obtained from an application perspective suggest that detecting AI-generated hotel reviews is a relevant task to identify fake or potentially misleading online content. 
+However, several limitations need to be considered when interpreting the results.
+
+First, this study was restricted to English hotel reviews. Although this allowed us to apply a consistent preprocessing pipeline, it limits the generalizability of our findings to other linguistic contexts. 
+As online review platforms serve users worldwide, the expansion of AI-generated review detection to multiple languages represents an important direction for future research.
+Therefore, multilingual models and machine translation could be explored to adapt the proposed approach to different languages. 
+However, differences in grammar, syntax, and writing conventions may affect the affect the accuracy of the detection models. 
+
+Second, the study focused exclusively on hotel reviews. However, the characteristics of AI-generated reviews may vary across domains, such as e-commerce, restaurants, and other service industries. 
+Future research could therefore investigate whether the patterns identified in this study also occur in other types of reviews. 
+Domain-specific models could be developed to account for differences in vocabulary, writing style, and review content. 
+This step would help determine whether general or domain-specific models are more suitable.
+
+Furthermore, the classification results may depend on the preprocessing techniques and model configurations. 
+Future research could investigate the use of n-grams to capture recurring word combinations, alternative normalization techniques, and different tokenization methods. 
+In addition, different classification models, including deep neural networks, could be explored to evaluate their suitability for AI-generated review detection. 
+More extensive hyperparameter tuning could further optimize model configurations by systematically evaluating different parameter combinations.
+
 
 \section{Conclusions}
 \label{sec:conclusions}
