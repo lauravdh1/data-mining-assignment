@@ -12,8 +12,7 @@
 
 # LaTeX build output
 report/build/
-
-# LaTeX build output
+report/main.pdf
 *.aux
 *.bbl
 *.blg
