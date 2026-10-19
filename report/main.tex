@@ -298,16 +298,31 @@ The final model for testing was refit on the entire training set once the optima
 
 
 
-% Ensemble models
+The fourth model was Random Forest \citep{Breiman2001}.
+A single Decision Tree has a high variance, since small changes in the training data can lead to a very different tree.
+Random Forest reduces this variance by training many trees on bootstrap samples of the training set and letting them vote on the final class.
+In addition, each split only considers a random subset of the features, which makes the trees less correlated with each other, so their errors cancel out more when combined.
+We tuned $\text{min\_df}$, the number of features considered at each split ($\text{max\_features}$) and the number of trees ($\text{n\_estimators}$).
+The trees were grown to full depth, as is common for Random Forest, because averaging over many trees counteracts the overfitting of the individual trees.
+The selected $\text{max\_features}$ was $\log_2 p$, which with a vocabulary of $p = 4443$ words means that each split only considers 12 randomly chosen words, resulting in strongly decorrelated trees.
+The largest number of trees in the grid (500) was selected, so adding more trees might improve the performance slightly further.
+
+The fifth model was Gradient Boosting \citep{4a848dd1-54e3-3c3c-83c3-04977ded2e71}.
+Whereas Random Forest builds independent trees, Gradient Boosting builds trees sequentially, where each new tree is fitted to the errors (the gradient of the log-loss) of the trees before it.
+Random Forest mainly reduces variance, whereas Gradient Boosting mainly reduces bias by adding up many weak learners, typically shallow trees.
+Including both ensembles therefore allows us to compare two different ways of combining trees.
+We tuned the learning rate, which scales the contribution of each tree, the number of trees and the maximum depth of each tree.
+Because the trees have to be trained one after another, Gradient Boosting cannot be parallelized over the trees like Random Forest.
+To limit the computation time, we therefore used a smaller grid and kept $\text{min\_df}$ at its default value.
+The selected maximum depth was 1, meaning that each tree is a decision stump that splits on a single word.
+This was combined with the highest learning rate (0.2) and the largest number of trees (300) in the grid.
 
 In addition to accuracy, precision, recall and F1-score, we used McNemar's test \citep{Dietterich1998} to test whether difference in accuracy between the models is significant.
 McNemar's test is computationally efficient and requires only a single train/test split, suiting our setup.
 We compared Naive Bayes and Logistic Regression because they represent the generative and discriminative models, respectively \citep{Ng2001}.
 The results of this test will indicate whether for this text classification task it is more effective to model the estimated generative probability of the words or to model the class boundary more directly.
-To evaluate whether combining multiple trees enhances predictive performance, we also
-implemented Random Forest and Gradient Boosting classifiers. We apply McNemar's test to
-compare each ensemble model against the Decision Tree baseline.
-% Motivate McNemar comparison of other models here (Q2)
+We also compared Random Forest and Gradient Boosting against the Decision Tree baseline.
+The results of these tests will indicate whether combining many trees into an ensemble significantly improves accuracy over a single tree.
 
 We used the McNemar formula as follows:
 \begin{equation}\label{eq:mcnemar}
