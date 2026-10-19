@@ -10,6 +10,7 @@
  % (it provides \toprule, \midrule and \bottomrule).
  % Remove the next line if you don't require it.
 \usepackage{booktabs}
+\usepackage{multirow}
  % The siunitx package is used by this sample document
  % to align numbers in a column by their decimal point.
  % Remove the next line if you don't require it.
@@ -66,10 +67,18 @@
 \maketitle
 
 \begin{abstract}
-This is the abstract for this article.
+With the rise of large language models (LLMs) making text generation cheap and scalable, fake reviews are a growing concern for hotels.
+We expand on the work of \citet{Ignat2025} by comparing five bag-of-words classifiers (Logistic Regression, Naive Bayes, a Decision Tree, Random Forest and Gradient Boosting) for distinguishing human-written from GPT-4-generated reviews.
+We use the English reviews of the MAiDE-up dataset, split into a training set of 1,500 reviews and test set of 500 reviews.
+Hyperparameters are tuned using 5-fold cross-validated grid search, and model accuracies are compared on the test set using McNemar's test.
+Naive Bayes achieved the highest test accuracy (0.922), and both tree ensembles significantly outperformed the single Decision Tree.
+A chi-square test found no significant difference in Random Forest accuracy between positive and negative reviews.
+Feature analysis suggests that AI-generated reviews tend towards more formal vocabulary (e.g.\ \emph{furthermore} and \emph{top-notch} for Naive Bayes, \emph{lack} for Logistic Regression), whereas human reviews contain more narrative terms (e.g.\ \emph{told} and \emph{said}).
+These findings indicate that LLM-generated reviews differ from human-written reviews in word use, and that ensembles improve on a single Decision Tree for this task.
+
 \end{abstract}
 \begin{keywords}
-List of keywords
+Fake review detection, AI-generated text, large language models, hotel reviews, text classification, bag-of-words, ensemble methods
 \end{keywords}
 
 \section{Introduction}
@@ -93,7 +102,7 @@ We expand on their research by comparing a wider range of bag-of-words models.
 
 In this paper, we investigate how well simple bag-of-words models can distinguish AI-generated hotel reviews from human-written reviews.
 We use the English reviews from the MAiDE-up dataset\footnote{\url{https://github.com/MichiganNLP/multilingual_reviews_deception}} \citep{Ignat2025}, which contains both positive and negative reviews, written by humans and generated with GPT-4.
-We compare five models: Multinomial Naive Bayes, Logistic Regression, a Decision Tree, Random Forest and Gradient Boosting.
+We compare five models: Multinomial Naive Bayes, Logistic Regression, Decision Tree, Random Forest and Gradient Boosting.
 These models were chosen because they are computationally efficient and interpretable, which allows us to inspect which words drive their predictions.
 We address the following research questions:
 \begin{enumerate}
@@ -237,48 +246,21 @@ The final step is to divide the preprocessed dataset into training and test subs
 The training data is used to fit the classification models, whereas the test data is kept for evaluation. 
 We applied stratified splitting to preserve the 50/50 class distribution in both data sets. 
 This ensures that both classes are equally represented during training, such that the model can learn patterns from human-written and AI-generated reviews without favoring one class due to different class frequencies. 
-A separate validation set is not necessarily required for this experimental setup since we use use cross-validation for the final evaluation. 
+A separate validation set is not necessarily required for this experimental setup since we use cross-validation for the final evaluation. 
 
 \section{Experimental Setup}
 \label{sec:setup}
 
 All models in this experiment used a bag-of-words representation. 
 This approach provides a method for representing text data by treating word counts as primary features, although it inherently lacks the ability to capture word order.
-Each model was tuned using a grid search with 5-fold cross-validation to identify the optimal hyperparameters (\tableref{tab:hyperparameters}).
+Each model was tuned using a grid search with 5-fold cross-validation to identify the optimal hyperparameters (see \tableref{tab:hyperparameters} in \appendixref{apd:first}).
 5-fold cross-validation was chosen to balance the need for robust evaluation against the limitations of the dataset size and available computational time.
-
-\begin{table}[H]
-\floatconts
-  {tab:hyperparameters}%
-  {\caption{Hyperparameter grids searched with 5-fold cross-validation and the selected values. Parameter names follow scikit-learn; min\_df not listed means the default of 1 was used.}}%
-  {\begin{tabular}{lllc}
-  \toprule
-  \bfseries Model & \bfseries Hyperparameter & \bfseries Grid & \bfseries Selected\\
-  \midrule
-  Naive Bayes & min\_df & $\{1, 2, 3, 5, 10\}$ & 3\\
-   & $k$ & $\{50, 100, 200, 300, 500, \text{all}\}$ & all\\
-  \midrule
-  Logistic Regression & min\_df & $\{1, 2, 3, 5, 10\}$ & 1\\
-   & $C$ & 15 log-spaced in $[0.01, 100]$ & 1\\
-  \midrule
-  Decision Tree & ccp\_alpha & all $\alpha$ on the pruning path & 0.0017\\
-  \midrule
-  Random Forest & min\_df & $\{1, 2, 5\}$ & 1\\
-   & max\_features & $\{\sqrt{p}, \log_2 p, 0.05p, 0.1p\}$ & $\log_2 p$\\
-   & n\_estimators & $\{100, 300, 500\}$ & 500\\
-  \midrule
-  Gradient Boosting & learning\_rate & $\{0.05, 0.1, 0.2\}$ & 0.2\\
-   & n\_estimators & $\{100, 300\}$ & 300\\
-   & max\_depth & $\{1, 3, 5\}$ & 1\\
-  \bottomrule
-  \end{tabular}}
-\end{table}
 
 The first model chosen was Multinomial Naive Bayes.
 As a standard model for text classification, it counts word frequencies per class.
 By beginning with this baseline, we can evaluate whether increased model complexity yields improvements in accuracy.
 We used the chi-squared test to select the top $k$ features, which assists in removing features that are less informative for prediction.
-Additionally, the minimum document frequency ($\text{min\_df}$) was tuned via grid search to remove sparse terms.
+Additionally, the minimum document frequency (min\_df) was tuned via grid search to remove sparse terms.
 However, the selected $k$ was all features, indicating that feature selection did not improve performance.
 
 The second model selected was Logistic Regression.
@@ -286,14 +268,14 @@ This is another common and computationally efficient baseline for text classific
 To prevent overfitting given the limited sample size, L1 regularization was applied to penalize large weights.
 The regularization strength $C$ (where $C = 1/\lambda$) was tuned over a range of 0.01 to 100.
 While Multinomial Naive Bayes uses top $k$ feature selection as a tunable step, L1 regularization removes uninformative terms by setting their weights to zero, which is not possible for Naive Bayes as it has no learned weights to penalize.
-As with the previous model, $\text{min\_df}$ was also employed to eliminate sparse terms.
+As with the previous model, the minimum document frequency was also employed to eliminate sparse terms.
 
 The third model deployed was the Decision Tree.
 This model was chosen for its interpretability, allowing for a clear analysis of the factors driving its predictions.
 Furthermore, since a Random Forest model is also implemented, a single Decision tree serves as a necessary baseline to determine if an ensemble approach improves performance, as documented in the literature \citep{Breiman2001}.
 The Decision Tree Classifier was implemented using the scikit-learn library with the default Gini setting.
-However, since the default $\text{ccp\_alpha}$ is 0, we performed a grid search to optimize this hyperparameter.
-Without tuning $\text{ccp\_alpha}$ the tree can become overly complex and lead to overfitting.
+However, since the default cost-complexity pruning parameter $\alpha$ (ccp\_alpha) is 0, we performed a grid search to optimize this hyperparameter.
+Without tuning $\alpha$ the tree can become overly complex and lead to overfitting.
 The final model for testing was refit on the entire training set once the optimal $\alpha$ was found. 
 
 
@@ -314,7 +296,7 @@ We used the McNemar formula as follows:
 \chi^2 = \frac{\left(|n_{01} - n_{10}| - 1\right)^2}{n_{01} + n_{10}}
 \end{equation}
 This formula uses a $2 \times 2$ contingency table that counts the instances where the two models agree or disagree, where $n_{01}$ is the number of instances misclassified by the first model but not the second, and $n_{10}$ vice versa.
-The null hypothesis states that both models perform with equal accuracy, while the alternative hypothesis states that the models differ in accuracy, tested at a significance level of $\alpha = 0.01$.
+The null hypothesis states that both models perform with equal accuracy, while the alternative hypothesis states that the models differ in accuracy, tested at a significance level of 0.01.
 
 
 \section{Results}
@@ -341,10 +323,11 @@ The null hypothesis states that both models perform with equal accuracy, while t
 \end{table}
 
 \tableref{tab:performance} shows the performance metrics for the models evaluated. 
-Multinomial Naive Bayes and Logistic Regression achieved similar accuracy (0.898 and 0.902) and F1-scores (0.904 and 0.900).
-However, they show differences in precision and recall.
-Naive Bayes has a higher recall (0.956) but lower precision (0.857), so it misses fewer AI-generated reviews but also incorrectly labels more human reviews as AI.
-Logistic Regression shows the opposite pattern with a higher precision (0.917) and lower recall (0.884).
+Multinomial Naive Bayes achieved the highest test accuracy (0.922) and F1-score (0.925) of all models, compared to 0.896 and 0.894 for Logistic Regression.
+However, their cross-validation accuracies are nearly identical (0.899 and 0.901), suggesting that the gap on the test set may be specific to this split (see \sectionref{sec:statistical-tests}).
+The two models also differ in precision and recall.
+Naive Bayes has a higher recall (0.960) but lower precision (0.892), so it misses fewer AI-generated reviews but also incorrectly labels more human reviews as AI.
+Logistic Regression shows the opposite pattern with a higher precision (0.909) and lower recall (0.880).
 This means it incorrectly flags fewer human reviews as AI-generated.
 In comparison to the other models, the Decision Tree performs worst on all metrics.
 It has an accuracy of 0.780 and an F1-score of 0.774.
@@ -358,59 +341,57 @@ Both ensembles show the same pattern as Logistic Regression, with a lower recall
 \subsection{Statistical Tests}
 \label{sec:statistical-tests}
 
-The McNemar's test results for Multinomial Naive Bayes and Logistic Regression are detailed in \tableref{tab:mcnemar-lr-nb}.
+The McNemar's test results for Multinomial Naive Bayes and Logistic Regression are detailed in \tableref{tab:mcnemar}.
 As shown, both models correctly classify the vast majority of reviews (421 instances).
-Logistic regression misclassifies 28 reviews that Naive Bayes correctly identifies, while the reverse occurs in 30 instances.
-Given the proximity of these numbers, McNemar's test gives $p = 0.896 > 0.01$, so we failed to reject the null hypothesis.
+Logistic regression misclassifies 40 reviews that Naive Bayes correctly identifies, while the reverse occurs in 27 instances.
+Although Naive Bayes makes fewer unique errors, McNemar's test gives $p = 0.143 > 0.01$, so we failed to reject the null hypothesis.
 This means Logistic Regression and Naive Bayes do not differ significantly in accuracy.
 
 \begin{table}[H]
 \floatconts
-  {tab:mcnemar-lr-nb}%
-  {\caption{McNemar contingency table for Logistic Regression vs.\ Naive Bayes on the test set ($\chi^2 = 2.149$, $p = 0.143$).}}%
-  {\begin{tabular}{lcc}
+  {tab:mcnemar}%
+  {\caption{McNemar contingency tables on the test set, with McNemar's $\chi^2$ statistic (\equationref{eq:mcnemar}) and p-value below each table. LR = Logistic Regression, NB = Naive Bayes, RF = Random Forest, GB = Gradient Boosting, DT = Decision Tree.}}%
+  {\small\setlength{\tabcolsep}{3pt}%
+  \begin{tabular}{lcc}
+  \multicolumn{3}{c}{\bfseries (a) LR vs.\ NB}\\
   \toprule
-  & \bfseries NB correct & \bfseries NB incorrect\\
+  & \multicolumn{2}{c}{NB}\\
+  & correct & wrong\\
   \midrule
-  \bfseries LR correct & 421 & 27\\
-  \bfseries LR incorrect & 40 & 12\\
+  LR correct & 421 & 27\\
+  LR wrong & 40 & 12\\
   \bottomrule
+  \multicolumn{3}{c}{$\chi^2 = 2.149$, $p = 0.143$}
+  \end{tabular}\hfill
+  \begin{tabular}{lcc}
+  \multicolumn{3}{c}{\bfseries (b) RF vs.\ DT}\\
+  \toprule
+  & \multicolumn{2}{c}{DT}\\
+  & correct & wrong\\
+  \midrule
+  RF correct & 371 & 84\\
+  RF wrong & 19 & 26\\
+  \bottomrule
+  \multicolumn{3}{c}{$\chi^2 = 39.77$, $p < 0.001$}
+  \end{tabular}\hfill
+  \begin{tabular}{lcc}
+  \multicolumn{3}{c}{\bfseries (c) GB vs.\ DT}\\
+  \toprule
+  & \multicolumn{2}{c}{DT}\\
+  & correct & wrong\\
+  \midrule
+  GB correct & 370 & 74\\
+  GB wrong & 20 & 36\\
+  \bottomrule
+  \multicolumn{3}{c}{$\chi^2 = 29.88$, $p < 0.001$}
   \end{tabular}}
 \end{table}
 
 To evaluate whether tree ensembles significantly improve upon the single Decision Tree baseline, we also performed McNemar's tests comparing Random Forest and Gradient Boosting against the Decision Tree. 
 
-For Random Forest versus the Decision Tree, both models correctly classified 371 instances, while Random Forest corrected 84 errors made by the Decision Tree and made 19 new errors. This yields $\chi^2 = 39.77$ ($p < 0.001$), leading to a rejection of the null hypothesis at $\alpha = 0.01$ and confirming that Random Forest significantly outperforms the single Decision Tree.
-
-\begin{table}[H]
-\floatconts
-  {tab:mcnemar-rf-dt}%
-  {\caption{McNemar contingency table for Random Forest vs.\ Decision Tree on the test set ($\chi^2 = 39.77$, $p < 0.001$).}}%
-  {\begin{tabular}{lcc}
-  \toprule
-  & \bfseries DT correct & \bfseries DT incorrect\\
-  \midrule
-  \bfseries RF correct & 371 & 84\\
-  \bfseries RF incorrect & 19 & 26\\
-  \bottomrule
-  \end{tabular}}
-\end{table}
+For Random Forest versus the Decision Tree (\tableref{tab:mcnemar}), both models correctly classified 371 instances, while Random Forest corrected 84 errors made by the Decision Tree and made 19 new errors. This yields $\chi^2 = 39.77$ ($p < 0.001$), leading to a rejection of the null hypothesis at the 0.01 significance level and confirming that Random Forest significantly outperforms the single Decision Tree.
 
 Similarly, Gradient Boosting correctly classified 370 instances in agreement with the Decision Tree, corrected 74 errors, and made 20 new errors. This results in $\chi^2 = 29.88$ ($p < 0.001$), also indicating a statistically significant improvement over the single Decision Tree baseline.
-
-\begin{table}[H]
-\floatconts
-  {tab:mcnemar-gb-dt}%
-  {\caption{McNemar contingency table for Gradient Boosting vs.\ Decision Tree on the test set ($\chi^2 = 29.88$, $p < 0.001$).}}%
-  {\begin{tabular}{lcc}
-  \toprule
-  & \bfseries DT correct & \bfseries DT incorrect\\
-  \midrule
-  \bfseries GB correct & 370 & 74\\
-  \bfseries GB incorrect & 20 & 36\\
-  \bottomrule
-  \end{tabular}}
-\end{table}
 
 \subsection{Feature Importance}
 \label{sec:feature-importance}
@@ -434,33 +415,29 @@ Similarly, Gradient Boosting correctly classified 370 instances in agreement wit
   \end{tabular}}
 \end{table}
 
-The top five most important features for Multinomial Naive Bayes (\tableref{tab:top-features-linear}) are: \emph{delight}, \emph{notch}, \emph{desir}, \emph{inconsist}, and \emph{lastli}.
+The top five most important features for Multinomial Naive Bayes (\tableref{tab:top-features-linear}) are: \emph{notch}, \emph{bucharest}, \emph{downsid}, \emph{furthermore}, and \emph{desired}.
+Some features, such as \emph{notch} and \emph{downsid}, and later \emph{proxim} and \emph{servic}, appear as word stems as a result of Porter stemming (see \sectionref{sec:stemming}).
 All five features show similar feature scores, suggesting the model assigns them nearly equal importance.
-This means each word was approximately $e^{3.16} \approx 24$ to $e^{3.42} \approx 31$ times more likely to appear in AI-generated reviews.
-These terms appears with relatively high frequency in the dataset (around 30 to 40 occurrences each), implying that their high occurrence in AI reviews was a primary driver for the Naive Bayes classification.
-The words associated with AI-generation show formal characteristic, such as ``delight'' and ``notch,'', suggesting that GPT-4's output is more formal compared to human writing.
-``Inconsis'' was also a top feature for AI, likely derived from ``inconsistent'' or ``inconsistently''. 
-``Delight'' likely stems from ``delightful'' or ``delighted'', while ``notch'' likely from ``top-notch''.
-Furthermore, ``inconsist'' and ``notch'' are primarily adjectives.
-This suggests that GPT-4 relies on descriptive adjectives.
-``Lastly'' is a distinct outlier in the list of words, since it is a transition word.
+This means each word was approximately $e^{2.89} \approx 18$ to $e^{3.25} \approx 26$ times more likely to appear in AI-generated reviews.
+These terms appear with relatively high frequency in the dataset (22 to 51 occurrences each), implying that their high occurrence in AI reviews was a primary driver for the Naive Bayes classification.
+The words associated with AI-generation show formal characteristic, such as ``desired'', suggesting that GPT-4's output is more formal compared to human writing.
+``Notch'' likely stems from ``top-notch''.
+``Furthermore'' is a distinct outlier in the list of words, since it is a transition word.
 The use of it suggests that GPT-4 uses words that are structural connectors more frequently than humans.
 
-The top five features for the Logistic Regression model were: \emph{delight}, \emph{lack}, \emph{offer}, \emph{stylish}, and \emph{notch}.
-The two words \emph{delight} and \emph{notch} overlap between the two linear models, with \emph{delight} ranking highest for both.
+The top five features for the Logistic Regression model were: \emph{lack}, \emph{delight}, \emph{heart}, \emph{limit}, and \emph{proxim}.
+None of the AI-related or human words overlap between the linear models.
 The variance in word overlap can be attributed to Naive Bayes modeling the generative probability of individual words, whereas Logistic Regression models the class boundary.
-\emph{Stylish} is an adjective, further suggesting that GPT-4 leans towards descriptive words.
 Additionally, \emph{lack} was identified as a sign of AI-generation, suggesting that AI may focus more on missing services, whereas human reviews may do so less frequently.
-While two AI-related words overlap between the linear models, none of the human words match.
-This may be because AI produces more formulaic reviews, whereas human writing is more varied.
 
 The features associated with AI generation appear to be more formal and polished in nature.
-Furthermore, AI tends to describe the appearance of locations in polished terms, whereas humans focus more on actions (e.g. ``told,'' ``said,'' ``enter'').
-This may suggest a difference in that AI describes experiences based on impressions of what is likely to occur, while humans describe their lived experiences.
+Furthermore, AI tends to describe the appearance of locations in polished terms, whereas humans focus more on actions (e.g. ``told,'' ``said''), which aligns with findings by \citet{Zhao2025}.
+This may suggest a difference in that AI describes experiences based on impressions of what is likely to occur, while humans describe their lived experiences, as also suggested by \citet{Ignat2025}.
+The number \emph{10} among the human features is consistent with the exploratory analysis in \sectionref{sec:normalization}, where human-written reviews contained substantially more numbers per 1000 words than AI-generated reviews (11.46 vs.\ 0.83).
 One outlier ``com'' appears among the human features.
-This is likely a fragment of ``booking.com'' as a result of data preprocessing. 
+This is likely a fragment of ``booking.com'' as a result of tokenization. 
 This resulted in Naive Bayes picking up on a platform-specific artifact of the human reviews, whereas AI does not mention the booking platforms.
-A limitation of the linear models is the bag-of-words representation, which obscures the analysis of word order.
+A limitation of all models is the bag-of-words representation, which obscures the analysis of word order.
 
 
 
@@ -477,7 +454,7 @@ Three of these (\emph{hotel}, \emph{servic} and \emph{staff}) are also among the
 In contrast to the Decision Tree, both ensembles rank \emph{lack} (in 14\% of AI-generated vs.\ 1\% of human-written reviews) among their top features.
 \emph{Lack} is also the top AI feature of Logistic Regression, making it the only word shared between a tree-based and a linear model.
 The importances of the ensembles are spread more evenly across the top words than those of the Decision Tree, since each word's importance is averaged over many trees.
-For Gradient Boosting, the selected $\text{max\_depth}$ of 1 means that each tree is a single split on one word, so the model is an additive combination of individual word effects without interactions between words.
+For Gradient Boosting, the selected tree depth (max\_depth) of 1 means that each tree is a single split on one word, so the model is an additive combination of individual word effects without interactions between words.
 
 
 \begin{table}[H]
@@ -561,12 +538,33 @@ Additionally, ChatGPT was used to support Latex formatting, particularly for inc
 I used Claude Opus 5.5 to explain errors, debug, and clean up my code. I also used it to help with Latex formatting, such as creating tables.
 \appendix
 
-\section{First Appendix}\label{apd:first}
+\section{Hyperparameter Tuning}\label{apd:first}
 
-This is the first appendix.
-
-\section{Second Appendix}\label{apd:second}
-
-This is the second appendix.
+\begin{table}[H]
+\floatconts
+  {tab:hyperparameters}%
+  {\caption{Hyperparameter grids searched with 5-fold cross-validation and the selected values. Parameter names follow scikit-learn; min\_df not listed means the default of 1 was used.}}%
+  {\begin{tabular}{lllc}
+  \toprule
+  \bfseries Model & \bfseries Hyperparameter & \bfseries Grid & \bfseries Selected\\
+  \midrule
+  Naive Bayes & min\_df & $\{1, 2, 3, 5, 10\}$ & 3\\
+   & $k$ & $\{50, 100, 200, 300, 500, \text{all}\}$ & all\\
+  \midrule
+  Logistic Regression & min\_df & $\{1, 2, 3, 5, 10\}$ & 1\\
+   & $C$ & 15 log-spaced in $[0.01, 100]$ & 1\\
+  \midrule
+  Decision Tree & ccp\_alpha & all $\alpha$ on the pruning path & 0.0017\\
+  \midrule
+  Random Forest & min\_df & $\{1, 2, 5\}$ & 1\\
+   & max\_features & $\{\sqrt{p}, \log_2 p, 0.05p, 0.1p\}$ & $\log_2 p$\\
+   & n\_estimators & $\{100, 300, 500\}$ & 500\\
+  \midrule
+  Gradient Boosting & learning\_rate & $\{0.05, 0.1, 0.2\}$ & 0.2\\
+   & n\_estimators & $\{100, 300\}$ & 300\\
+   & max\_depth & $\{1, 3, 5\}$ & 1\\
+  \bottomrule
+  \end{tabular}}
+\end{table}
 
 \end{document}
