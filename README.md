@@ -11,6 +11,7 @@ This project investigates whether hotel reviews can be classified as human-writt
 
 ### Dataset
 The original dataset is stored in: `all_data.csv`.
+
 The target variable is based on the source column: `0 = Human`, `1 = AI`
 
 ### Data Analysis
@@ -20,6 +21,7 @@ The file `analysis.ipynb` is intended for data understanding and exploratory ana
 - Review length analysis
 - Frequency analysis of words
 - Analysis of contractions, punctuation, and numerical content 
+
 Overall, these analyses provide a rationale for the subsequent preprocessing decisions.
 
 ### Data Preprocessing
