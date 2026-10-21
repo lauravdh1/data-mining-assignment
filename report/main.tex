@@ -128,9 +128,9 @@ between human and AI-generated reviews rather than on variations based on langua
 However, our findings may not generalize to reviews written in other languages.
 \newline
 The filtered dataset consists of 2,000 reviews, including 1,000 genuine and 1,000 AI-generated reviews, with ten feature columns and one target variable.
-First, the two review columns, \texttt{Upside_Review} and \texttt{Downside_Review}, were combined into a single \texttt{Review} column to facilitate subsequent analysis.
+First, the two review columns, \texttt{Upside\_Review} and \texttt{Downside\_Review}, were combined into a single \texttt{Review} column to facilitate subsequent analysis.
 To obtain an initial overview of the textual characteristics of reviews in both classes, corresponding word clouds were generated (Figure~\ref{fig:wordcloud_human}, Figure~\ref{fig:wordcloud_ai}). 
-\begin{figure}[htbp]
+\begin{figure}[H]
     \centering
     \begin{minipage}{0.48\textwidth}
         \centering
@@ -232,7 +232,7 @@ The final step is to divide the preprocessed dataset into training and test subs
 The training data is used to fit the classification models, whereas the test data is kept for evaluation. 
 We applied stratified splitting to preserve the 50/50 class distribution in both data sets. 
 This ensures that both classes are equally represented during training, such that the model can learn patterns from human-written and AI-generated reviews without favoring one class due to different class frequencies. 
-A separate validation set is not necessarily required for this experimental setup since we use cross-validation for the final evaluation. 
+No separate validation set is needed, because hyperparameters are tuned with 5-fold cross-validation on the training set. The test set is only used once, to evaluate the final models.
 
 \section{Experimental Setup}
 \label{sec:setup}
@@ -520,6 +520,16 @@ More extensive hyperparameter tuning could further optimize model configurations
 \section{Conclusions}
 \label{sec:conclusions}
 
+In this paper, we compared five bag-of-words classifiers for distinguishing human-written from GPT-4-generated hotel reviews in the English part of the MAiDE-up dataset.
+Even these simple models detect AI-generated reviews well: four of the five reach a test accuracy of around 0.89--0.92.
+
+First, the generative Multinomial Naive Bayes achieved the highest test accuracy (0.922), but McNemar's test showed no significant difference from the discriminative Logistic Regression (0.896, $p = 0.143$), and their cross-validation accuracies were nearly identical.
+Second, both tree ensembles significantly outperformed the single Decision Tree ($p < 0.001$): Random Forest raised the accuracy from 0.780 to 0.910 and Gradient Boosting to 0.888.
+Third, Random Forest was slightly more accurate on negative than on positive reviews (0.925 vs.\ 0.894), but this difference was not significant ($p = 0.294$).
+Finally, the most predictive words suggest that GPT-4 writes in a more formal and generic style, using words such as \emph{furthermore}, \emph{top-notch} and \emph{lack} and frequently mentioning the hotel, staff and service.
+Human reviewers, by contrast, describe what happened to them (\emph{told}, \emph{said}) and use more numbers.
+
+Overall, more complex models are not necessarily better for this task: a Naive Bayes classifier performs as well as the more expensive ensembles, while ensembles are clearly needed when tree-based models are used.
 
 \bibliography{references}
 
