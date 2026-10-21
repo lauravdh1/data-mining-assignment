@@ -10,7 +10,7 @@ Install uv: https://docs.astral.sh/uv/getting-started/installation/
 This project investigates whether hotel reviews can be classified as human-written or AI-generated using machine learning. The dataset contains 'real' hotel reviews from Booking.com and AI-generated reviews created using GPT-4. The analysis is restricted to English-language reviews.
 
 ### Dataset
-The original dataset is stored in: `all_data.csv`.
+The original dataset is stored in: `all_data.csv`
 
 The target variable is based on the source column: `0 = Human`, `1 = AI`
 
