@@ -89,7 +89,7 @@ As reviews can directly affect a hotel's reputation and bookings, fake reviews, 
 
 Large language models (LLMs) have improved significantly in recent years, particularly in text generation.
 Before this, the volume of fake reviews was likely limited by human writing speed, time and energy.
-By enabling rapid, large-scale review generation, they remove the time and effort constraints of human writing, what makes fake reviews increasingly common \citep{Ignat2025}.
+By enabling rapid, large-scale review generation, they remove the time and effort constraints of human writing, which makes fake reviews increasingly common \citep{Ignat2025}.
 Platforms such as Amazon have already reported a surge of ChatGPT-generated fake reviews, which reduce consumer trust in online reviews and harm seller performance \citep{Zhao2025}. 
 Therefore, automated methods are needed to filter out AI-generated reviews.
 
@@ -140,13 +140,12 @@ This follows the recommendations of \citet{Hickman2022}, who emphasize that prep
 
 \section{Data Preprocessing}
 \label{sec:preprocessing}
-Data preprocessing is a fundamental step in natural language processing (NLP), where raw textual data often contain inconsistencies and features that are not directly suitable for computational analysis. 
-The objective of preprocessing is to transform the original reviews into a consistent representation while preserving the linguistic information. 
-The overall methodology is illustrated in Figure~\ref{fig:pipeline}, with the main preprocessing steps described in the following sections.
+Preprocessing transforms the raw reviews into a consistent representation while preserving potentially informative linguistic features.
+The overall methodology is illustrated in Figure~\ref{fig:pipeline}.
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=0.8\textwidth]{figures/pipeline.png}
+    \includegraphics[width=0.7\textwidth]{figures/pipeline.png}
     \caption{Steps and Techniques used in Sentiment Analysis.}
     \label{fig:pipeline}
 \end{figure}
@@ -171,37 +170,21 @@ Nevertheless, the observed differences are descriptive and do not necessarily im
 
 \subsection{Tokenization}
 \label{sec:tokenization}
-After normalization, the reviews are split into individual tokens that can be processed by machine learning algorithms. 
-Several tokenization strategies exist, ranging from simple whitespace tokenization to more sophisticated subword-based approaches. 
-For example, SentencePiece supports Byte Pair Encoding (BPE) and the Unigram Language Model, which learn subword units and do not require whitespace to define fixed word boundaries \cite{Kudo2018}. 
-Such approaches are particularly useful for languages such as Chinese and Japanese, where words are not consistently separated by spaces.
-\newline
-In this project, we applied whitespace tokenization, which splits the text at whitespace characters to obtain individual tokens. 
-We chose this approach since the dataset was restricted to English reviews, in which spaces generally separate words. 
-This makes whitespace tokenization a simple and computationally efficient option. 
-However, it does not account for all linguistic complexities, such as contractions or punctuation attached to words. 
-However, it has limitations, as punctuation may remain attached to words and contractions may not be consistently separated into individual tokens.
+After normalization, the reviews are split into tokens using whitespace tokenization.
+Since the dataset only contains English reviews, in which spaces generally separate words, this is a simple and computationally efficient choice; subword tokenizers such as SentencePiece \citep{Kudo2018} are mainly needed for languages without clear word boundaries.
+However, punctuation may remain attached to words and contractions may not be consistently split into separate tokens.
 
 \subsection{Stop-Word Removal}
 \label{sec:stop-word-removal}
-After tokenization, common English stop words are removed. Stop words are frequently occurring terms that only contribute little information to text classification, including articles, prepositions, and conjunctions. 
-Examples involve \textit{the}, \textit{a}, \textit{and}, and \textit{or}. 
-In this study, the English stop-word list provided by the Natural Language Toolkit (NLTK) is used. 
-Removing these words allows the analysis to focus more strongly on terms that may be informative for distinguishing. 
-For example, rather than emphasizing frequently occurring grammatical words such as the and and, the resulting representation places greater emphasis on descriptive terms related to hotel rooms, staff, service, and location.
-Stop-word removal in general is a common preprocessing technique, although its effectiveness depends on the task. 
-Since frequent function words showed limited discriminatory value in the initial analysis, we removed them to focus on more informative content words.
-However, since common words can also convey stylistic information, their removal should be carefully considered.
+After tokenization, we remove stop words such as \textit{the}, \textit{a} and \textit{and} using the English stop-word list of the Natural Language Toolkit (NLTK).
+Since these function words showed little discriminative value in the initial analysis (\sectionref{sec:data}), removing them shifts the focus to content words about rooms, staff, service and location.
+However, common words can also carry stylistic information, so their removal may discard some useful signal.
 
 \subsection{Stemming}
 \label{sec:stemming}
-The final step is stemming, which removes prefixes or suffixes to reduce words to a common stem. 
-This groups related word forms, reduces vocabulary size, and improves computational efficiency during model training.
-By reducing lexical variation, stemming can also help machine learning models to identify recurring patterns across reviews, even when the same concept appears in different grammatical forms.
-For this study we applied the Porter stemming algorithm, since it is a widely used method designed specifically for English \cite{Willett2006}. 
-However, stemming does not necessarily produce linguistically valid words. It applies rule-based transformations to obtain stems rather than complete dictionary forms. 
-Furthermore, different words may occasionally be reduced to the same stem despite having different meanings. 
-Since the dataset is restricted to English hotel reviews, the vocabulary is relatively focused on a specific domain, which helps to limit the potential drawbacks of stemming. 
+The final step is stemming, which reduces words to a common stem so that related word forms are grouped and the vocabulary becomes smaller.
+We use the Porter stemmer, a widely used algorithm designed for English \citep{Willett2006}.
+The resulting stems are not always valid words (e.g., \emph{servic}) and unrelated words may occasionally share a stem, but the narrow hotel-review domain limits this risk.
 
 \section{Experimental Setup}
 \label{sec:setup}
@@ -239,7 +222,7 @@ The trees were grown to full depth, as is common for Random Forest, because aver
 The selected $\text{max\_features}$ was $\log_2 p$, which with a vocabulary of $p = 4443$ words means that each split only considers 12 randomly chosen words, resulting in strongly decorrelated trees.
 The largest number of trees in the grid (500) was selected, so adding more trees might improve the performance slightly further.
 
-\paragraph{5. Gradient Boosting} \citep{4a848dd1-54e3-3c3c-83c3-04977ded2e71}.
+\paragraph{5. Gradient Boosting} \citep{4a848dd1-54e3-3c3c-83c3-04977ded2e71}
 Whereas Random Forest builds independent trees, Gradient Boosting builds trees sequentially, where each new tree is fitted to the errors (the gradient of the log-loss) of the trees before it.
 Thereby, Gradient Boosting mainly reduces bias by adding up many weak learners, typically shallow trees.
 Including both ensemble methods allows us to compare two different approaches of combining decision trees.
@@ -344,7 +327,7 @@ Although Naive Bayes makes fewer unique errors, McNemar's test found no signific
 \end{table}
 
 We used McNemar's tests further to assess whether Random Forest and Gradient Boosting significantly outperform the Decision Tree baseline. 
-For Random Forest versus the Decision Tree (\tableref{tab}), Random Forest corrected 84 errors but introduced 19 new ones. McNemar's test confirmed a significant improvement ($\chi^2 = 39.77$, $p < 0.001$), rejecting the null hypothesis at the 0.01 significance level.
+For Random Forest versus the Decision Tree (\tableref{tab:mcnemar}b), Random Forest corrected 84 errors but introduced 19 new ones. McNemar's test confirmed a significant improvement ($\chi^2 = 39.77$, $p < 0.001$), rejecting the null hypothesis at the 0.01 significance level.
 Similarly, Gradient Boosting corrected 74 errors made by the Decision Tree and introduced 20 new ones. McNemar's test confirmed a significant improvement ($\chi^2 = 29.88$, $p < 0.001$) over the single Decision Tree.
 
 \subsection{Feature Importance}
@@ -441,9 +424,6 @@ Thus, we fail to reject the null hypothesis, suggesting that Random Forest's det
 \end{table}
 \section{Limitations and Future Work}
 \label{sec:sec:limitations-and-futurework}
-From an application perspective, detecting AI-generated hotel reviews can help identify fake or potentially misleading online content. 
-However, several limitations must be considered.
-
 First, this study was restricted to English hotel reviews. Although this allowed us to apply a consistent preprocessing pipeline, it limits the generalizability of our findings to other linguistic contexts. 
 As online review platforms serve users worldwide, the expansion of AI-generated review detection to multiple languages represents an important direction for future research.
 However, differences in grammar, syntax, and writing conventions may affect the accuracy of the detection models. 
@@ -466,11 +446,7 @@ First, the generative Multinomial Naive Bayes achieved the highest test accuracy
 Second, both tree ensembles significantly outperformed the single Decision Tree ($p < 0.001$): Random Forest raised the accuracy from 0.780 to 0.910 and Gradient Boosting to 0.888.
 Third, Random Forest was slightly more accurate on negative than on positive reviews (0.925 vs.\ 0.894), but this difference was not significant ($p = 0.294$).
 
-Feature analysis shows that AI-generated reviews tend to use more formal and generic language, whereas human reviews contain more narrative expressions and numbers. 
-However, the findings are limited to English hotel reviews generated by GPT-4 and may not generalize to other languages. In addition, bag-of-words models ignore word order and contextual meaning, which may limit their ability to capture more complex linguistic patterns.
-Future work should evaluate the models across different languages, domains, and LLMs to assess their generalizability. 
-In addition, preprocessing and feature selection should be guided by theoretical considerations and empirical evidence to ensure reproducibility and meaningful interpretation.
-
+Feature analysis shows that AI-generated reviews tend to use more formal and generic language, whereas human reviews contain more narrative expressions and numbers.
 Overall, the results show that simple models can perform well, while more complex models do not always lead to better results.
 
 \bibliography{references}
