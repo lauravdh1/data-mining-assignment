@@ -207,8 +207,8 @@ Since the dataset is restricted to English hotel reviews, the vocabulary is rela
 \label{sec:setup}
 
 After preprocessing, the dataset is split into stratified training and test sets to preserve the 50/50 class distribution. 
-No separate validation set is needed, because hyperparameters are tuned with 5-fold cross-validation to identify the optimal hyperparameters (see \tableref{tab:hyperparameters} in \appendixref{apd:first}).
-5-fold cross-validation was chosen to balance the need for robust evaluation against the limitations of the dataset size and available computational time.
+No separate validation set is needed, because hyperparameters are tuned with 5-fold cross-validation (see \tableref{tab:hyperparameters} in \appendixref{apd:first}).
+5-fold cross-validation was chosen to balance robust evaluation against dataset size and computational time.
 All models use a bag-of-words representation, which represents reviews through word counts. While computationally efficient, this approach does not capture word order.
 
 \paragraph{1. Multinomial Naive Bayes}
@@ -219,11 +219,9 @@ Additionally, the minimum document frequency (min\_df) was tuned via grid search
 However, the selected $k$ was all features, indicating that feature selection did not improve performance.
 
 \paragraph{2. Logistic Regression}
-This is another common and computationally efficient baseline for text classification, as it calculates a weight for each term within the bag-of-words representation, making the model highly interpretable.
-To prevent overfitting given the limited sample size, L1 regularization was applied to penalize large weights.
+This is another common and computationally efficient baseline, as it calculates a weight for each term within the bag-of-words representation, making the model highly interpretable.
+To prevent overfitting given the limited sample size, L1 regularization was applied, which removes uninformative terms by setting their weights to zero.
 The regularization strength $C$ (where $C = 1/\lambda$) was tuned over a range of 0.01 to 100.
-While Multinomial Naive Bayes uses top $k$ feature selection as a tunable step, L1 regularization removes uninformative terms by setting their weights to zero, which is not possible for Naive Bayes as it has no learned weights to penalize.
-As with the previous model, the minimum document frequency was also employed to eliminate sparse terms.
 
 \paragraph{3. Decision Tree}
 This model was chosen for its interpretability, allowing for a clear analysis of the factors driving its predictions.
@@ -255,7 +253,6 @@ In addition to accuracy, precision, recall and F1-score, we used McNemar's test 
 We compare Naive Bayes and Logistic Regression as generative and discriminative models, respectively \citep{Ng2001}, to assess which approach is more effective for text classification. 
 Random Forest and Gradient Boosting are compared against the Decision Tree baseline to evaluate whether ensembles improve accuracy over a single tree.
 
-We used the McNemar formula as follows:
 \begin{equation}\label{eq:mcnemar}
 \chi^2 = \frac{\left(|n_{01} - n_{10}| - 1\right)^2}{n_{01} + n_{10}}
 \end{equation}
@@ -265,16 +262,13 @@ We used the McNemar formula as follows:
 
 \section{Results}
 \label{sec:results}
-This section presents the classification results, compares model performance, and examines the most influential features for distinguishing human-written from AI-generated reviews.
 \subsection{Performance}
 \label{sec:performance}
 
 Multinomial Naive Bayes achieved the highest test accuracy (0.922) and F1-score (0.925) of all models, compared to 0.896 and 0.894 for Logistic Regression.
 However, their cross-validation accuracies are nearly identical (0.899 and 0.901), suggesting that the gap on the test set may be specific to this split (see \sectionref{sec:statistical-tests}).
-The two models also differ in precision and recall.
 Naive Bayes has a higher recall (0.960) but lower precision (0.892), so it misses fewer AI-generated reviews but also incorrectly labels more human reviews as AI.
 Logistic Regression shows the opposite pattern with a higher precision (0.909) and lower recall (0.880).
-This means it incorrectly flags fewer human reviews as AI-generated.
 In comparison to the other models, the Decision Tree performs worst on all metrics.
 % It has an accuracy of 0.780 and an F1-score of 0.774.
 % It shows a similar error pattern to Logistic Regression where its recall (0.752) is lower than its precision (0.797).
@@ -384,22 +378,21 @@ Their formal characteristics, such as ``desired'', suggest that GPT-4-generated 
 This suggests that GPT-4 uses structural connectors more frequently than humans.
 
 The top five features identified by Logistic Regression do not overlap with those of Naive Bayes.
-The variance in word overlap can be attributed to Naive Bayes modeling the generative probability of individual words, whereas Logistic Regression models the class boundary.
+This difference can be attributed to Naive Bayes modeling the generative probability of individual words, whereas Logistic Regression models the class boundary.
 Additionally, \emph{lack} was identified as a sign of AI-generation, suggesting that AI may focus more on missing services, whereas human reviews may do so less frequently.
 The features associated with AI generation appear to be more formal and polished in nature.
-Furthermore, AI tends to describe the appearance of locations in polished terms, whereas humans focus more on actions (e.g. ``told,'' ``said''), consistent with \citet{Zhao2025}.
+Furthermore, AI tends to describe the appearance of locations in polished terms, whereas humans focus more on actions (``told,'' ``said,'' ``book'') and concrete details (``construct,'' ``door''), consistent with \citet{Zhao2025}.
 This may reflect a difference between AI-generated descriptions based on likely impressions and human accounts of lived experiences, as suggested by \citet{Ignat2025}.
 The number \emph{10} among the human features is consistent with the exploratory analysis in \sectionref{sec:normalization}, where human-written reviews contained substantially more numbers per 1,000 words than AI-generated reviews (11.46 vs.\ 0.83).
 The outlier``com'' likely originates from ``booking.com'' and appears as a separate token due to tokenization. 
 This resulted in Naive Bayes picking up on a platform-specific artifact of the human reviews, whereas AI does not mention the booking platforms.
-A limitation of all models is the bag-of-words representation, which obscures the analysis of word order.
 
 The Decision Tree's top five features ranked by Gini importance, show no overlap with the linear models.
 However, unlike the previous models, the AI-associated words are mainly about the hotel itself, likely because the tree favours common words that split many reviews.
 For example, \emph{hotel} appears in 60\% of the AI-generated training reviews but only in 29\% of the human-written ones, which is consistent with the word frequency analysis in \sectionref{sec:data}.
 \emph{Central} is rarer but more one-sided, appearing in 16\% of AI-generated and 3\% of human-written reviews.
 The only exception is \emph{good}, which is associated with human reviews (28\% of human-written vs.\ 14\% of AI-generated reviews).
-Although descriptive words are mostly associated with AI in the other models, \emph{good} points towards human reviews. This could be because AI uses more polished language (e.g., \emph{delight}, \emph{top-notch}) to appear convincing, whereas humans may use simpler, more neutral adjectives like \emph{good} to express satisfaction.
+Although descriptive words are mostly associated with AI in the other models, \emph{good} points towards human reviews. This could be because AI uses more polished language (e.g., \emph{delight}, \emph{top-notch}) to appear convincing, whereas humans may use simpler, more neutral adjectives like \emph{good} (and \emph{fine} for Logistic Regression) to express satisfaction.
 
 Random Forest and Gradient Boosting share exactly the same top five features, only in a different order, and all of them point towards AI-generated reviews.
 Three of these (\emph{hotel}, \emph{servic} and \emph{staff}) are also among the top features of the Decision Tree, suggesting that the ensembles rely on the same hotel-related vocabulary as the single tree.
@@ -453,13 +446,14 @@ However, several limitations must be considered.
 
 First, this study was restricted to English hotel reviews. Although this allowed us to apply a consistent preprocessing pipeline, it limits the generalizability of our findings to other linguistic contexts. 
 As online review platforms serve users worldwide, the expansion of AI-generated review detection to multiple languages represents an important direction for future research.
-However, differences in grammar, syntax, and writing conventions may affect the affect the accuracy of the detection models. 
+However, differences in grammar, syntax, and writing conventions may affect the accuracy of the detection models. 
 
 Second, the study focused exclusively on hotel reviews. However, the characteristics of AI-generated reviews may vary across domains, such as e-commerce, restaurants, and other service industries. 
 Future research could therefore investigate whether the patterns identified in this study also occur in other types of reviews. 
 Domain-specific models could be developed to account for differences in vocabulary, writing style, and review content. 
 
-Furthermore, the classification results may depend on the preprocessing techniques and model configurations. 
+Furthermore, the classification results may depend on the preprocessing techniques and model configurations.
+A limitation of all models is the bag-of-words representation, which obscures the analysis of word order.
 Future research could investigate the use of n-grams to capture recurring word combinations, alternative normalization techniques, and different tokenization methods. 
 In addition, different classification models, including deep neural networks, could be explored to evaluate their suitability for AI-generated review detection. 
 

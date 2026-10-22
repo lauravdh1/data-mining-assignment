@@ -36,23 +36,11 @@ The data is divided into **training/validation set (75%)**, and a **test set(25%
 Hyperparameter tuning is performed using cross-validation on the training data, so no separate hold-out validation set is required.
 Run the file `preprocessing.ipynb` to obtain the training (`train_v.1.csv`) and test file (`test_v.1.csv`).
 
-### Feature Extraction
-
-### ML Selection & Training
-
 ### ML Evaluation
+`train_models.py` evaluates each model once on the test set. Output goes to the terminal and to `results/run_<timestamp>.txt`.
 
+All report tables (1 to 6) are produced by `train_models.py`.
 
-<!-- ### Project Structure
-Do we need this section? (Comment: Theresa)
-project/ 
-│ 
-├── all_data.csv 
-├── train.csv 
-├── test.csv 
-├── preprocessing.ipynb 
-├── README.md 
-└── ... -->
 
 ### Requirements
 The project uses Python and the following external packages:
@@ -68,5 +56,3 @@ The following Python standard library modules are also used and do not require s
 - `string`
 - `unicodedata`
 - `collections (for Counter)`
-
-Additionally, the required NLTK resources, such as English stopwords, must be downloaded before running the notebook.
