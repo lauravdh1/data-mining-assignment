@@ -4,6 +4,7 @@
 Install uv: https://docs.astral.sh/uv/getting-started/installation/
 
     uv sync
+    uv run python preprocessing.py   # optional: recreates data/train_v.1.csv and data/test_v.1.csv
     uv run python train_models.py
 
 ## AI-Generated Hotel Review Classification
@@ -25,7 +26,7 @@ The file `analysis.ipynb` is intended for data understanding and exploratory ana
 Overall, these analyses provide a rationale for the subsequent preprocessing decisions.
 
 ### Data Preprocessing
-All preprocessing steps are summarized in `preprocessing.ipynb`. This includes:
+All preprocessing steps are in `preprocessing.py`. This includes:
 - Normalization
 - Tokenization
 - Stopword removal
@@ -34,7 +35,7 @@ All preprocessing steps are summarized in `preprocessing.ipynb`. This includes:
 ### Train/ Test-Split
 The data is divided into **training/validation set (75%)**, and a **test set(25%)** using stratified random sampling.
 Hyperparameter tuning is performed using cross-validation on the training data, so no separate hold-out validation set is required.
-Run the file `preprocessing.ipynb` to obtain the training (`train_v.1.csv`) and test file (`test_v.1.csv`).
+Run `preprocessing.py` (or `preprocessing.ipynb`) to obtain the training (`train_v.1.csv`) and test file (`test_v.1.csv`).
 
 ### ML Evaluation
 `train_models.py` evaluates each model once on the test set. Output goes to the terminal and to `results/run_<timestamp>.txt`.
