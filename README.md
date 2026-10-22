@@ -16,7 +16,7 @@ The original dataset is stored in: `all_data.csv`
 The target variable is based on the source column: `0 = Human`, `1 = AI`
 
 ### Data Analysis
-The file `analysis.ipynb` is intended for data understanding and exploratory analysis and is not required to reproduce the final results. It includes the following:
+The file `analysis.py` is intended for data understanding and exploratory analysis and is not required to reproduce the final results. It includes the following:
 - Distribution of human and AI-generated reviews
 - Word clouds for human and AI-generated reviews
 - Review length analysis
@@ -35,7 +35,7 @@ All preprocessing steps are in `preprocessing.py`. This includes:
 ### Train/ Test-Split
 The data is divided into **training/validation set (75%)**, and a **test set(25%)** using stratified random sampling.
 Hyperparameter tuning is performed using cross-validation on the training data, so no separate hold-out validation set is required.
-Run `preprocessing.py` (or `preprocessing.ipynb`) to obtain the training (`train_v.1.csv`) and test file (`test_v.1.csv`).
+Run `preprocessing.py` to obtain the training (`train_v.1.csv`) and test file (`test_v.1.csv`).
 
 ### ML Evaluation
 `train_models.py` evaluates each model once on the test set. Output goes to the terminal and to `results/run_<timestamp>.txt`.
