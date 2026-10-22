@@ -67,13 +67,12 @@
 \maketitle
 
 \begin{abstract}
-With the rise of large language models (LLMs) making text generation cheap and scalable, fake reviews are a growing concern for hotels.
-We expand on the work of \citet{Ignat2025} by comparing five bag-of-words classifiers (Logistic Regression, Naive Bayes, a Decision Tree, Random Forest and Gradient Boosting) for distinguishing human-written from GPT-4-generated reviews.
+With the rise of large language models (LLMs), which make text generation cheap and scalable, fake reviews become an increasing concern across industries.
+We expand on the work of \citet{Ignat2025} by comparing five bag-of-words classifiers to distinguish human-written from AI-generated reviews.
 We use the English reviews of the MAiDE-up dataset, split into a training set of 1,500 reviews and test set of 500 reviews.
 Hyperparameters are tuned using 5-fold cross-validated grid search, and model accuracies are compared on the test set using McNemar's test.
-Naive Bayes achieved the highest test accuracy (0.922), and both tree ensembles significantly outperformed the single Decision Tree.
-A chi-square test found no significant difference in Random Forest accuracy between positive and negative reviews.
-Feature analysis suggests that AI-generated reviews tend towards more formal vocabulary (e.g.\ \emph{furthermore} and \emph{top-notch} for Naive Bayes, \emph{lack} for Logistic Regression), whereas human reviews contain more narrative terms (e.g.\ \emph{told} and \emph{said}).
+Naive Bayes achieves the highest accuracy (0.922), while both tree ensembles significantly outperform a single Decision Tree. 
+Feature analysis suggests differences in vocabulary, with AI-generated reviews tending towards more formal language and human reviews towards narrative expressions.
 These findings indicate that LLM-generated reviews differ from human-written reviews in word use, and that ensembles improve on a single Decision Tree for this task.
 
 \end{abstract}
@@ -84,40 +83,38 @@ Fake review detection, AI-generated text, large language models, hotel reviews, 
 \section{Introduction}
 \label{sec:intro}
 
-When choosing a hotel, people increasingly trust the words of strangers online.
-Studies have shown that people are strongly influenced by these reviews; negative information tends to weigh more heavily, while positively framed reviews combined with numerical ratings increase both booking intentions and trust in a hotel \citep{Sparks2011}. 
-For this reason, hotels care about their reviews, as these can affect booking intentions.
-One concern for both hotels and customers is fake reviews, also known as opinion spam.
+When choosing a hotel, people increasingly rely on online reviews, which can strongly influence their booking decisions. 
+Research shows that negative information tends to weigh more heavily, while positive reviews combined with numerical ratings increase trust and booking intentions \citep{Sparks2011}. 
+As reviews can directly affect a hotel's reputation and bookings, fake reviews, also known as opinion spam, are a growing concern for both hotels and customers.
 
-Large language models (LLMs) have improved substantially in recent years and excel especially at writing tasks.
+Large language models (LLMs) have improved significantly in recent years, particularly in text generation.
 Before this, the volume of fake reviews was likely limited by human writing speed, time and energy.
-Now, LLMs can generate reviews rapidly, outpacing humans, and deceptive reviews are becoming increasingly common \citep{Ignat2025}.
+By enabling rapid, large-scale review generation, they remove the time and effort constraints of human writing, what makes fake reviews increasingly common \citep{Ignat2025}.
 Platforms such as Amazon have already reported a surge of ChatGPT-generated fake reviews, which reduce consumer trust in online reviews and harm seller performance \citep{Zhao2025}. 
 Therefore, automated methods are needed to filter out AI-generated reviews.
 
 Prior work has found that AI-generated fake reviews are more comprehensible, less specific, more mechanical and less empathetic than authentic reviews \citep{Zhao2025}. 
 In a recent study, \citet{Ignat2025} collected real hotel reviews from Booking.com and generated fake ones with GPT-4.
 However, \citeauthor{Ignat2025} only compared two models, Gaussian Naive Bayes and Random Forests, to a fine-tuned deep learning model.
-We expand on their research by comparing a wider range of bag-of-words models.
+We extend on this prior research and evaluate how effectively simple bag-of-words models can distinguish AI-generated from human-written hotel reviews.
 
-In this paper, we investigate how well simple bag-of-words models can distinguish AI-generated hotel reviews from human-written reviews.
-We use the English reviews from the MAiDE-up dataset\footnote{\url{https://github.com/MichiganNLP/multilingual_reviews_deception}} \citep{Ignat2025}, which contains both positive and negative reviews, written by humans and generated with GPT-4.
-We compare five models: Multinomial Naive Bayes, Logistic Regression, Decision Tree, Random Forest and Gradient Boosting.
+We use the English subset of the MAiDE-up dataset\footnote{\url{https://github.com/MichiganNLP/multilingual_reviews_deception}} \citep{Ignat2025} to compare five bag-of-words classifiers: 
+Multinomial Naive Bayes, Logistic Regression, Decision Tree, Random Forest, and Gradient Boosting. 
 These models were chosen because they are computationally efficient and interpretable, which allows us to inspect which words drive their predictions.
-We address the following research questions:
+Thereby, we address the following research questions:
 \begin{enumerate}
   \item Does a discriminative linear model (Logistic Regression) outperform a generative one (Multinomial Naive Bayes)?
   \item Does combining many trees into an ensemble (Random Forest and Gradient Boosting) improve on a single Decision Tree?
   \item Is the Random Forest better at telling fake from genuine reviews when the reviews are positive or when they are negative?
   \item Which words are most predictive for each model, and which of them point towards AI-generated or human-written reviews?
 \end{enumerate}
-Answering these questions shows whether more complex models are worth their cost for this task, and which linguistic cues give AI-generated reviews away.
+Answering these questions shows whether more complex models are worth their cost for this task, and which words distinguish AI-generated reviews from human-written ones.
 
-The remainder of this paper is structured as follows.
-\sectionref{sec:data} describes the dataset and \sectionref{sec:preprocessing} the preprocessing steps.
-\sectionref{sec:setup} explains the models, the hyperparameter tuning and the statistical test used to compare the models.
-\sectionref{sec:results} presents the performance of the models, the results of McNemar's test and the most important features.
-Finally, \sectionref{sec:conclusions} summarizes our findings and discusses limitations and future work.
+% The remainder of this paper is structured as follows.
+% \sectionref{sec:data} describes the dataset and \sectionref{sec:preprocessing} the preprocessing steps.
+% \sectionref{sec:setup} explains the models, the hyperparameter tuning and the statistical test used to compare the models.
+% \sectionref{sec:results} presents the performance of the models, the results of McNemar's test and the most important features.
+% Finally, \sectionref{sec:conclusions} summarizes our findings and discusses limitations and future work.
 
 \section{Data}
 \label{sec:data}
@@ -129,23 +126,7 @@ However, our findings may not generalize to reviews written in other languages.
 \newline
 The filtered dataset consists of 2,000 reviews, including 1,000 genuine and 1,000 AI-generated reviews, with ten feature columns and one target variable.
 First, the two review columns, \texttt{Upside\_Review} and \texttt{Downside\_Review}, were combined into a single \texttt{Review} column to facilitate subsequent analysis.
-To obtain an initial overview of the textual characteristics of reviews in both classes, corresponding word clouds were generated (Figure~\ref{fig:wordcloud_human}, Figure~\ref{fig:wordcloud_ai}). 
-\begin{figure}[H]
-    \centering
-    \begin{minipage}{0.48\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{figures/wordcloud_human.png}
-        \caption{Word cloud of human-written hotel reviews.}
-        \label{fig:wordcloud_human}
-    \end{minipage}
-    \hfill
-    \begin{minipage}{0.48\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{figures/wordcloud_ai.png}
-        \caption{Word cloud of AI-generated hotel reviews.}
-        \label{fig:wordcloud_ai}
-    \end{minipage}
-\end{figure}
+To obtain an initial overview of the textual characteristics of reviews in both classes, corresponding word clouds were generated (see Appendix~\ref{app:wordclouds}).
 
 The word frequencies show similarities between the two groups: words such as ``the'', ``and'', and ``was'' occur frequently in both sources. 
 This can be explained by the grammatical structure and the descriptive nature of hotel reviews. 
@@ -182,8 +163,7 @@ However, normalization requires careful consideration because certain textual ch
 Therefore, our preprocessing decisions were guided by an exploratory analysis of the dataset to identify differences between the two classes.
 The analysis shows differences in punctuation and number usage. Human reviews contained more question marks and exclamation marks per 1,000 words than AI-generated reviews (0.63 vs. 0.02 and 5.66 vs. 0.85), whereas AI-generated reviews contained more commas (49.02 vs. 35.06). 
 Additionally, human-written reviews contained substantially more numbers (11.46 vs. 0.83 per 1,000 words).
-\newline
-A similar pattern was identified for contractions. Human-written reviews contained 10.22 contractions per 1000 words, compared with 5.57 in AI-generated reviews. 
+A similar pattern was identified for contractions. Human-written reviews contained 10.22 contractions per 1,000 words, compared with 5.57 in AI-generated reviews. 
 Based on these findings, we decided to keep numbers, punctuation marks, and contractions during text normalization. 
 \newline
 This approach aims to balance textual consistency with the preservation of features that may help the model distinguish between the two classes. 
@@ -206,11 +186,9 @@ However, it has limitations, as punctuation may remain attached to words and con
 \label{sec:stop-word-removal}
 After tokenization, common English stop words are removed. Stop words are frequently occurring terms that only contribute little information to text classification, including articles, prepositions, and conjunctions. 
 Examples involve \textit{the}, \textit{a}, \textit{and}, and \textit{or}. 
-
 In this study, the English stop-word list provided by the Natural Language Toolkit (NLTK) is used. 
 Removing these words allows the analysis to focus more strongly on terms that may be informative for distinguishing. 
 For example, rather than emphasizing frequently occurring grammatical words such as the and and, the resulting representation places greater emphasis on descriptive terms related to hotel rooms, staff, service, and location.
-\newline
 Stop-word removal in general is a common preprocessing technique, although its effectiveness depends on the task. 
 Since frequent function words showed limited discriminatory value in the initial analysis, we removed them to focus on more informative content words.
 However, since common words can also convey stylistic information, their removal should be carefully considered.
@@ -221,42 +199,33 @@ The final step is stemming, which removes prefixes or suffixes to reduce words t
 This groups related word forms, reduces vocabulary size, and improves computational efficiency during model training.
 By reducing lexical variation, stemming can also help machine learning models to identify recurring patterns across reviews, even when the same concept appears in different grammatical forms.
 For this study we applied the Porter stemming algorithm, since it is a widely used method designed specifically for English \cite{Willett2006}. 
-
 However, stemming does not necessarily produce linguistically valid words. It applies rule-based transformations to obtain stems rather than complete dictionary forms. 
 Furthermore, different words may occasionally be reduced to the same stem despite having different meanings. 
 Since the dataset is restricted to English hotel reviews, the vocabulary is relatively focused on a specific domain, which helps to limit the potential drawbacks of stemming. 
 
-\subsection{Training and Test Split}
-\label{sec:train-test-split}
-The final step is to divide the preprocessed dataset into training and test subsets. 
-The training data is used to fit the classification models, whereas the test data is kept for evaluation. 
-We applied stratified splitting to preserve the 50/50 class distribution in both data sets. 
-This ensures that both classes are equally represented during training, such that the model can learn patterns from human-written and AI-generated reviews without favoring one class due to different class frequencies. 
-No separate validation set is needed, because hyperparameters are tuned with 5-fold cross-validation on the training set. The test set is only used once, to evaluate the final models.
-
 \section{Experimental Setup}
 \label{sec:setup}
 
-All models in this experiment used a bag-of-words representation. 
-This approach provides a method for representing text data by treating word counts as primary features, although it inherently lacks the ability to capture word order.
-Each model was tuned using a grid search with 5-fold cross-validation to identify the optimal hyperparameters (see \tableref{tab:hyperparameters} in \appendixref{apd:first}).
+After preprocessing, the dataset is split into stratified training and test sets to preserve the 50/50 class distribution. 
+No separate validation set is needed, because hyperparameters are tuned with 5-fold cross-validation to identify the optimal hyperparameters (see \tableref{tab:hyperparameters} in \appendixref{apd:first}).
 5-fold cross-validation was chosen to balance the need for robust evaluation against the limitations of the dataset size and available computational time.
+All models use a bag-of-words representation, which represents reviews through word counts. While computationally efficient, this approach does not capture word order.
 
-The first model chosen was Multinomial Naive Bayes.
+\paragraph{1. Multinomial Naive Bayes}
 As a standard model for text classification, it counts word frequencies per class.
 By beginning with this baseline, we can evaluate whether increased model complexity yields improvements in accuracy.
 We used the chi-squared test to select the top $k$ features, which assists in removing features that are less informative for prediction.
 Additionally, the minimum document frequency (min\_df) was tuned via grid search to remove sparse terms.
 However, the selected $k$ was all features, indicating that feature selection did not improve performance.
 
-The second model selected was Logistic Regression.
+\paragraph{2. Logistic Regression}
 This is another common and computationally efficient baseline for text classification, as it calculates a weight for each term within the bag-of-words representation, making the model highly interpretable.
 To prevent overfitting given the limited sample size, L1 regularization was applied to penalize large weights.
 The regularization strength $C$ (where $C = 1/\lambda$) was tuned over a range of 0.01 to 100.
 While Multinomial Naive Bayes uses top $k$ feature selection as a tunable step, L1 regularization removes uninformative terms by setting their weights to zero, which is not possible for Naive Bayes as it has no learned weights to penalize.
 As with the previous model, the minimum document frequency was also employed to eliminate sparse terms.
 
-The third model deployed was the Decision Tree.
+\paragraph{3. Decision Tree}
 This model was chosen for its interpretability, allowing for a clear analysis of the factors driving its predictions.
 Furthermore, since a Random Forest model is also implemented, a single Decision tree serves as a necessary baseline to determine if an ensemble approach improves performance, as documented in the literature \citep{Breiman2001}.
 The Decision Tree Classifier was implemented using the scikit-learn library with the default Gini setting.
@@ -264,47 +233,56 @@ However, since the default cost-complexity pruning parameter $\alpha$ (ccp\_alph
 Without tuning $\alpha$ the tree can become overly complex and lead to overfitting.
 The final model for testing was refit on the entire training set once the optimal $\alpha$ was found. 
 
-
-
-The fourth model was Random Forest \citep{Breiman2001}.
+\paragraph{4. Random Forest} \citep{Breiman2001}
 A single Decision Tree has a high variance, since small changes in the training data can lead to a very different tree.
-Random Forest reduces this variance by training many trees on bootstrap samples of the training set and letting them vote on the final class.
-In addition, each split only considers a random subset of the features, which makes the trees less correlated with each other, so their errors cancel out more when combined.
+Random Forest reduces variance by combining trees trained on bootstrap samples of the training data. At each split, only a random subset of features is considered, which makes the trees less correlated.
 We tuned $\text{min\_df}$, the number of features considered at each split ($\text{max\_features}$) and the number of trees ($\text{n\_estimators}$).
 The trees were grown to full depth, as is common for Random Forest, because averaging over many trees counteracts the overfitting of the individual trees.
 The selected $\text{max\_features}$ was $\log_2 p$, which with a vocabulary of $p = 4443$ words means that each split only considers 12 randomly chosen words, resulting in strongly decorrelated trees.
 The largest number of trees in the grid (500) was selected, so adding more trees might improve the performance slightly further.
 
-The fifth model was Gradient Boosting \citep{4a848dd1-54e3-3c3c-83c3-04977ded2e71}.
+\paragraph{5. Gradient Boosting} \citep{4a848dd1-54e3-3c3c-83c3-04977ded2e71}.
 Whereas Random Forest builds independent trees, Gradient Boosting builds trees sequentially, where each new tree is fitted to the errors (the gradient of the log-loss) of the trees before it.
-Random Forest mainly reduces variance, whereas Gradient Boosting mainly reduces bias by adding up many weak learners, typically shallow trees.
-Including both ensembles therefore allows us to compare two different ways of combining trees.
+Thereby, Gradient Boosting mainly reduces bias by adding up many weak learners, typically shallow trees.
+Including both ensemble methods allows us to compare two different approaches of combining decision trees.
 We tuned the learning rate, which scales the contribution of each tree, the number of trees and the maximum depth of each tree.
 Because the trees have to be trained one after another, Gradient Boosting cannot be parallelized over the trees like Random Forest.
-To limit the computation time, we therefore used a smaller grid and kept $\text{min\_df}$ at its default value.
+To limit the computation time, we used a smaller grid and kept $\text{min\_df}$ at its default value.
 The selected maximum depth was 1, meaning that each tree is a decision stump that splits on a single word.
 This was combined with the highest learning rate (0.2) and the largest number of trees (300) in the grid.
 
-In addition to accuracy, precision, recall and F1-score, we used McNemar's test \citep{Dietterich1998} to test whether difference in accuracy between the models is significant.
-McNemar's test is computationally efficient and requires only a single train/test split, suiting our setup.
-We compared Naive Bayes and Logistic Regression because they represent the generative and discriminative models, respectively \citep{Ng2001}.
-The results of this test will indicate whether for this text classification task it is more effective to model the estimated generative probability of the words or to model the class boundary more directly.
-We also compared Random Forest and Gradient Boosting against the Decision Tree baseline.
-The results of these tests will indicate whether combining many trees into an ensemble significantly improves accuracy over a single tree.
+In addition to accuracy, precision, recall and F1-score, we used McNemar's test \citep{Dietterich1998}, defined in Equation~\eqref{eq:mcnemar}, to assess whether differences in accuracy between models are significant.
+We compare Naive Bayes and Logistic Regression as generative and discriminative models, respectively \citep{Ng2001}, to assess which approach is more effective for text classification. 
+Random Forest and Gradient Boosting are compared against the Decision Tree baseline to evaluate whether ensembles improve accuracy over a single tree.
 
 We used the McNemar formula as follows:
 \begin{equation}\label{eq:mcnemar}
 \chi^2 = \frac{\left(|n_{01} - n_{10}| - 1\right)^2}{n_{01} + n_{10}}
 \end{equation}
-This formula uses a $2 \times 2$ contingency table that counts the instances where the two models agree or disagree, where $n_{01}$ is the number of instances misclassified by the first model but not the second, and $n_{10}$ vice versa.
-The null hypothesis states that both models perform with equal accuracy, while the alternative hypothesis states that the models differ in accuracy, tested at a significance level of 0.01.
-
+% Not sure if we need to state this ? (Theresa)
+% This formula uses a $2 \times 2$ contingency table that counts the instances where the two models agree or disagree, where $n_{01}$ is the number of instances misclassified by the first model but not the second, and $n_{10}$ vice versa.
+% The null hypothesis states that both models perform with equal accuracy, while the alternative hypothesis states that the models differ in accuracy, tested at a significance level of 0.01.
 
 \section{Results}
 \label{sec:results}
-
+This section presents the classification results, compares model performance, and examines the most influential features for distinguishing human-written from AI-generated reviews.
 \subsection{Performance}
 \label{sec:performance}
+
+Multinomial Naive Bayes achieved the highest test accuracy (0.922) and F1-score (0.925) of all models, compared to 0.896 and 0.894 for Logistic Regression.
+However, their cross-validation accuracies are nearly identical (0.899 and 0.901), suggesting that the gap on the test set may be specific to this split (see \sectionref{sec:statistical-tests}).
+The two models also differ in precision and recall.
+Naive Bayes has a higher recall (0.960) but lower precision (0.892), so it misses fewer AI-generated reviews but also incorrectly labels more human reviews as AI.
+Logistic Regression shows the opposite pattern with a higher precision (0.909) and lower recall (0.880).
+This means it incorrectly flags fewer human reviews as AI-generated.
+In comparison to the other models, the Decision Tree performs worst on all metrics.
+% It has an accuracy of 0.780 and an F1-score of 0.774.
+% It shows a similar error pattern to Logistic Regression where its recall (0.752) is lower than its precision (0.797).
+% Both tree ensembles improve on the single Decision Tree.
+Random Forest achieves the highest cross-validation accuracy of all models (0.905) and a test accuracy of 0.910, second only to Naive Bayes.
+It also has the highest precision of all models (0.956), so it rarely labels human reviews as AI-generated.
+Gradient Boosting reaches a slightly lower accuracy (0.888) and F1-score (0.885).
+Both ensembles show the same pattern as Logistic Regression, with a lower recall (0.860 and 0.864) than precision (0.956 and 0.908), meaning they miss more AI-generated reviews than they wrongly flag human ones.
 
 \begin{table}[H]
 \floatconts
@@ -323,30 +301,13 @@ The null hypothesis states that both models perform with equal accuracy, while t
   \end{tabular}}
 \end{table}
 
-\tableref{tab:performance} shows the performance metrics for the models evaluated. 
-Multinomial Naive Bayes achieved the highest test accuracy (0.922) and F1-score (0.925) of all models, compared to 0.896 and 0.894 for Logistic Regression.
-However, their cross-validation accuracies are nearly identical (0.899 and 0.901), suggesting that the gap on the test set may be specific to this split (see \sectionref{sec:statistical-tests}).
-The two models also differ in precision and recall.
-Naive Bayes has a higher recall (0.960) but lower precision (0.892), so it misses fewer AI-generated reviews but also incorrectly labels more human reviews as AI.
-Logistic Regression shows the opposite pattern with a higher precision (0.909) and lower recall (0.880).
-This means it incorrectly flags fewer human reviews as AI-generated.
-In comparison to the other models, the Decision Tree performs worst on all metrics.
-It has an accuracy of 0.780 and an F1-score of 0.774.
-It shows a similar error pattern to Logistic Regression where its recall (0.752) is lower than its precision (0.797).
-Both tree ensembles improve on the single Decision Tree.
-Random Forest achieves the highest cross-validation accuracy of all models (0.905) and a test accuracy of 0.910, second only to Naive Bayes.
-It also has the highest precision of all models (0.956), so it rarely labels human reviews as AI-generated.
-Gradient Boosting reaches a slightly lower accuracy (0.888) and F1-score (0.885).
-Both ensembles show the same pattern as Logistic Regression, with a lower recall (0.860 and 0.864) than precision (0.956 and 0.908), meaning they miss more AI-generated reviews than they wrongly flag human ones.
-
 \subsection{Statistical Tests}
 \label{sec:statistical-tests}
 
 The McNemar's test results for Multinomial Naive Bayes and Logistic Regression are detailed in \tableref{tab:mcnemar}.
 As shown, both models correctly classify the vast majority of reviews (421 instances).
 Logistic regression misclassifies 40 reviews that Naive Bayes correctly identifies, while the reverse occurs in 27 instances.
-Although Naive Bayes makes fewer unique errors, McNemar's test gives $p = 0.143 > 0.01$, so we failed to reject the null hypothesis.
-This means Logistic Regression and Naive Bayes do not differ significantly in accuracy.
+Although Naive Bayes makes fewer unique errors, McNemar's test found no significant accuracy difference ($p = 0.143 > 0.01$).
 
 \begin{table}[H]
 \floatconts
@@ -388,15 +349,13 @@ This means Logistic Regression and Naive Bayes do not differ significantly in ac
   \end{tabular}}
 \end{table}
 
-To evaluate whether tree ensembles significantly improve upon the single Decision Tree baseline, we also performed McNemar's tests comparing Random Forest and Gradient Boosting against the Decision Tree. 
-
-For Random Forest versus the Decision Tree (\tableref{tab:mcnemar}), both models correctly classified 371 instances, while Random Forest corrected 84 errors made by the Decision Tree and made 19 new errors. This yields $\chi^2 = 39.77$ ($p < 0.001$), leading to a rejection of the null hypothesis at the 0.01 significance level and confirming that Random Forest significantly outperforms the single Decision Tree.
-
-Similarly, Gradient Boosting correctly classified 370 instances in agreement with the Decision Tree, corrected 74 errors, and made 20 new errors. This results in $\chi^2 = 29.88$ ($p < 0.001$), also indicating a statistically significant improvement over the single Decision Tree baseline.
+We used McNemar's tests further to assess whether Random Forest and Gradient Boosting significantly outperform the Decision Tree baseline. 
+For Random Forest versus the Decision Tree (\tableref{tab}), Random Forest corrected 84 errors but introduced 19 new ones. McNemar's test confirmed a significant improvement ($\chi^2 = 39.77$, $p < 0.001$), rejecting the null hypothesis at the 0.01 significance level.
+Similarly, Gradient Boosting corrected 74 errors made by the Decision Tree and introduced 20 new ones. McNemar's test confirmed a significant improvement ($\chi^2 = 29.88$, $p < 0.001$) over the single Decision Tree.
 
 \subsection{Feature Importance}
 \label{sec:feature-importance}
-
+The most important features identified by each model are summarized in \tableref{tab:top-features-linear}.
 \begin{table}[H]
 \floatconts
   {tab:top-features-linear}%
@@ -416,47 +375,38 @@ Similarly, Gradient Boosting correctly classified 370 instances in agreement wit
   \end{tabular}}
 \end{table}
 
-The top five most important features for Multinomial Naive Bayes (\tableref{tab:top-features-linear}) are: \emph{notch}, \emph{bucharest}, \emph{downsid}, \emph{furthermore}, and \emph{desired}.
-Some features, such as \emph{notch} and \emph{downsid}, and later \emph{proxim} and \emph{servic}, appear as word stems as a result of Porter stemming (see \sectionref{sec:stemming}).
-All five features show similar feature scores, suggesting the model assigns them nearly equal importance.
-This means each word was approximately $e^{2.89} \approx 18$ to $e^{3.25} \approx 26$ times more likely to appear in AI-generated reviews.
-These terms appear with relatively high frequency in the dataset (22 to 51 occurrences each), implying that their high occurrence in AI reviews was a primary driver for the Naive Bayes classification.
-The words associated with AI-generation show formal characteristic, such as ``desired'', suggesting that GPT-4's output is more formal compared to human writing.
+The top five features for Multinomial Naive Bayes have similar scores. This suggests that they contribute nearly equally to the model's predictions.
+Some features appear as word stems due to Porter stemming (see \sectionref{sec:stemming}). These results suggest that each word was approximately $e^{2.89} \approx 18$ to $e^{3.25} \approx 26$ times more likely to appear in AI-generated reviews.
+With 22 to 51 occurrences each, these terms likely contributed significantly to Naive Bayes classification. 
+Their formal characteristics, such as ``desired'', suggest that GPT-4-generated reviews tend to use more formal language than human-written reviews.
 ``Notch'' likely stems from ``top-notch''.
 ``Furthermore'' is a distinct outlier in the list of words, since it is a transition word.
-The use of it suggests that GPT-4 uses words that are structural connectors more frequently than humans.
+This suggests that GPT-4 uses structural connectors more frequently than humans.
 
-The top five features for the Logistic Regression model were: \emph{lack}, \emph{delight}, \emph{heart}, \emph{limit}, and \emph{proxim}.
-None of the AI-related or human words overlap between the linear models.
+The top five features identified by Logistic Regression do not overlap with those of Naive Bayes.
 The variance in word overlap can be attributed to Naive Bayes modeling the generative probability of individual words, whereas Logistic Regression models the class boundary.
 Additionally, \emph{lack} was identified as a sign of AI-generation, suggesting that AI may focus more on missing services, whereas human reviews may do so less frequently.
-
 The features associated with AI generation appear to be more formal and polished in nature.
-Furthermore, AI tends to describe the appearance of locations in polished terms, whereas humans focus more on actions (e.g. ``told,'' ``said''), which aligns with findings by \citet{Zhao2025}.
-This may suggest a difference in that AI describes experiences based on impressions of what is likely to occur, while humans describe their lived experiences, as also suggested by \citet{Ignat2025}.
-The number \emph{10} among the human features is consistent with the exploratory analysis in \sectionref{sec:normalization}, where human-written reviews contained substantially more numbers per 1000 words than AI-generated reviews (11.46 vs.\ 0.83).
-One outlier ``com'' appears among the human features.
-This is likely a fragment of ``booking.com'' as a result of tokenization. 
+Furthermore, AI tends to describe the appearance of locations in polished terms, whereas humans focus more on actions (e.g. ``told,'' ``said''), consistent with \citet{Zhao2025}.
+This may reflect a difference between AI-generated descriptions based on likely impressions and human accounts of lived experiences, as suggested by \citet{Ignat2025}.
+The number \emph{10} among the human features is consistent with the exploratory analysis in \sectionref{sec:normalization}, where human-written reviews contained substantially more numbers per 1,000 words than AI-generated reviews (11.46 vs.\ 0.83).
+The outlier``com'' likely originates from ``booking.com'' and appears as a separate token due to tokenization. 
 This resulted in Naive Bayes picking up on a platform-specific artifact of the human reviews, whereas AI does not mention the booking platforms.
 A limitation of all models is the bag-of-words representation, which obscures the analysis of word order.
 
-
-
-The top five features for the Decision Tree (\tableref{tab:top-features-trees}), ranked by Gini importance, are: \emph{hotel}, \emph{servic}, \emph{good}, \emph{central}, and \emph{staff}.
-These features show no overlap with the linear models.
-However, unlike the previous models, the AI-associated words are mainly about the hotel itself, such as \emph{hotel}, \emph{servic} (service), \emph{staff} and \emph{central}, likely because the tree favours common words that split many reviews.
+The Decision Tree's top five features ranked by Gini importance, show no overlap with the linear models.
+However, unlike the previous models, the AI-associated words are mainly about the hotel itself, likely because the tree favours common words that split many reviews.
 For example, \emph{hotel} appears in 60\% of the AI-generated training reviews but only in 29\% of the human-written ones, which is consistent with the word frequency analysis in \sectionref{sec:data}.
 \emph{Central} is rarer but more one-sided, appearing in 16\% of AI-generated and 3\% of human-written reviews.
 The only exception is \emph{good}, which is associated with human reviews (28\% of human-written vs.\ 14\% of AI-generated reviews).
 Although descriptive words are mostly associated with AI in the other models, \emph{good} points towards human reviews. This could be because AI uses more polished language (e.g., \emph{delight}, \emph{top-notch}) to appear convincing, whereas humans may use simpler, more neutral adjectives like \emph{good} to express satisfaction.
 
-Random Forest and Gradient Boosting share exactly the same top five features, \emph{servic}, \emph{staff}, \emph{hotel}, \emph{room}, and \emph{lack}, only in a different order, and all of them point towards AI-generated reviews.
+Random Forest and Gradient Boosting share exactly the same top five features, only in a different order, and all of them point towards AI-generated reviews.
 Three of these (\emph{hotel}, \emph{servic} and \emph{staff}) are also among the top features of the Decision Tree, suggesting that the ensembles rely on the same hotel-related vocabulary as the single tree.
 In contrast to the Decision Tree, both ensembles rank \emph{lack} (in 14\% of AI-generated vs.\ 1\% of human-written reviews) among their top features.
 \emph{Lack} is also the top AI feature of Logistic Regression, making it the only word shared between a tree-based and a linear model.
 The importances of the ensembles are spread more evenly across the top words than those of the Decision Tree, since each word's importance is averaged over many trees.
 For Gradient Boosting, the selected tree depth (max\_depth) of 1 means that each tree is a single split on one word, so the model is an additive combination of individual word effects without interactions between words.
-
 
 \begin{table}[H]
 \floatconts
@@ -478,9 +428,10 @@ For Gradient Boosting, the selected tree depth (max\_depth) of 1 means that each
 \subsection{Performance by Review Polarity}
 \label{sec:polarity}
 
-To investigate whether the selected Random Forest classifier performs better at distinguishing between fake and genuine reviews for positive versus negative sentiment, we evaluated its test set performance separately across positive and negative review subsets. 
-
-As shown in \tableref{tab:polarity-rf}, Random Forest achieves slightly higher accuracy on negative reviews (0.9252) compared to positive reviews (0.8943), along with higher precision (0.9746 vs.\ 0.9346) and F1-score (0.9237 vs.\ 0.8850). To test whether this difference in accuracy is statistically significant, we performed a chi-square test on the contingency table of correct and incorrect classifications by sentiment polarity. The test yielded $\chi^2 = 1.1031$ ($p = 0.2936 > 0.01$), indicating that we fail to reject the null hypothesis. Consequently, the Random Forest model's ability to detect AI-generated reviews does not differ significantly between positive and negative reviews.
+To examine whether Random Forest performs differently across sentiment polarities, we evaluated its test performance separately for positive and negative reviews. 
+As shown in \tableref{tab:polarity-rf}, negative reviews achieved slightly higher accuracy (0.9252), precision (0.9746), and F1-score (0.9237) than positive reviews (0.8943, 0.9346, and 0.8850, respectively). 
+However, a chi-square test found no statistically significant difference in accuracy $\chi^2 = 1.1031$ ($p = 0.2936 > 0.01$).
+Thus, we fail to reject the null hypothesis, suggesting that Random Forest's detection performance does not differ significantly between positive and negative reviews.
 
 \begin{table}[H]
 \floatconts
@@ -497,39 +448,36 @@ As shown in \tableref{tab:polarity-rf}, Random Forest achieves slightly higher a
 \end{table}
 \section{Limitations and Future Work}
 \label{sec:sec:limitations-and-futurework}
-
-The results obtained from an application perspective suggest that detecting AI-generated hotel reviews is a relevant task to identify fake or potentially misleading online content. 
-However, several limitations need to be considered when interpreting the results.
+From an application perspective, detecting AI-generated hotel reviews can help identify fake or potentially misleading online content. 
+However, several limitations must be considered.
 
 First, this study was restricted to English hotel reviews. Although this allowed us to apply a consistent preprocessing pipeline, it limits the generalizability of our findings to other linguistic contexts. 
 As online review platforms serve users worldwide, the expansion of AI-generated review detection to multiple languages represents an important direction for future research.
-Therefore, multilingual models and machine translation could be explored to adapt the proposed approach to different languages. 
 However, differences in grammar, syntax, and writing conventions may affect the affect the accuracy of the detection models. 
 
 Second, the study focused exclusively on hotel reviews. However, the characteristics of AI-generated reviews may vary across domains, such as e-commerce, restaurants, and other service industries. 
 Future research could therefore investigate whether the patterns identified in this study also occur in other types of reviews. 
 Domain-specific models could be developed to account for differences in vocabulary, writing style, and review content. 
-This step would help determine whether general or domain-specific models are more suitable.
 
 Furthermore, the classification results may depend on the preprocessing techniques and model configurations. 
 Future research could investigate the use of n-grams to capture recurring word combinations, alternative normalization techniques, and different tokenization methods. 
 In addition, different classification models, including deep neural networks, could be explored to evaluate their suitability for AI-generated review detection. 
-More extensive hyperparameter tuning could further optimize model configurations by systematically evaluating different parameter combinations.
 
 
 \section{Conclusions}
 \label{sec:conclusions}
 
 In this paper, we compared five bag-of-words classifiers for distinguishing human-written from GPT-4-generated hotel reviews in the English part of the MAiDE-up dataset.
-Even these simple models detect AI-generated reviews well: four of the five reach a test accuracy of around 0.89--0.92.
-
 First, the generative Multinomial Naive Bayes achieved the highest test accuracy (0.922), but McNemar's test showed no significant difference from the discriminative Logistic Regression (0.896, $p = 0.143$), and their cross-validation accuracies were nearly identical.
 Second, both tree ensembles significantly outperformed the single Decision Tree ($p < 0.001$): Random Forest raised the accuracy from 0.780 to 0.910 and Gradient Boosting to 0.888.
 Third, Random Forest was slightly more accurate on negative than on positive reviews (0.925 vs.\ 0.894), but this difference was not significant ($p = 0.294$).
-Finally, the most predictive words suggest that GPT-4 writes in a more formal and generic style, using words such as \emph{furthermore}, \emph{top-notch} and \emph{lack} and frequently mentioning the hotel, staff and service.
-Human reviewers, by contrast, describe what happened to them (\emph{told}, \emph{said}) and use more numbers.
 
-Overall, more complex models are not necessarily better for this task: a Naive Bayes classifier performs as well as the more expensive ensembles, while ensembles are clearly needed when tree-based models are used.
+Feature analysis shows that AI-generated reviews tend to use more formal and generic language, whereas human reviews contain more narrative expressions and numbers. 
+However, the findings are limited to English hotel reviews generated by GPT-4 and may not generalize to other languages. In addition, bag-of-words models ignore word order and contextual meaning, which may limit their ability to capture more complex linguistic patterns.
+Future work should evaluate the models across different languages, domains, and LLMs to assess their generalizability. 
+In addition, preprocessing and feature selection should be guided by theoretical considerations and empirical evidence to ensure reproducibility and meaningful interpretation.
+
+Overall, the results show that simple models can perform well, while more complex models do not always lead to better results.
 
 \bibliography{references}
 
@@ -577,5 +525,28 @@ I used Claude Opus 5.5 to explain errors, debug, and clean up my code. I also us
   \bottomrule
   \end{tabular}}
 \end{table}
+
+\section{Word Clouds}
+\label{app:wordclouds}
+
+Word clouds provide an initial overview of the most frequent
+words in human-written and AI-generated reviews.
+
+\begin{figure}[H]
+    \centering
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{figures/wordcloud_human.png}
+        \caption{Word cloud of human-written hotel reviews.}
+        \label{fig:wordcloud_human}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{figures/wordcloud_ai.png}
+        \caption{Word cloud of AI-generated hotel reviews.}
+        \label{fig:wordcloud_ai}
+    \end{minipage}
+\end{figure}
 
 \end{document}
