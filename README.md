@@ -4,6 +4,7 @@
 Install uv: https://docs.astral.sh/uv/getting-started/installation/
 
     uv sync
+    uv run python analysis.py        # optional: exploratory data analysis
     uv run python preprocessing.py   # optional: recreates data/train_v.1.csv and data/test_v.1.csv
     uv run python train_models.py
 
